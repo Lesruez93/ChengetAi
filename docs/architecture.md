@@ -3,15 +3,20 @@
 ## System diagram
 
 ```
-                         ┌────────────────────────────┐
-                         │        Flutter app          │
-   Consumer  ───────────▶│  check_message / lookup /   │
-   (share-intent, SMS)   │  feed (+hotspot map) / auth  │
-                         │        / home               │
-   SME / Agent  ────────▶│  sentinel (CSV upload)       │
-                         └──────────────┬───────────────┘
-                                        │ HTTPS / JSON
-                                        ▼
+   Consumer                  SME / Agent              Public visitor      POTRAZ / internal
+   (share-intent, SMS)                                (landing page)      (admin dashboard)
+          │                       │                          │                    │
+          ▼                       ▼                          ▼                    ▼
+   ┌──────────────────────────────────────┐   ┌───────────────────────────────────────┐
+   │            Flutter app                │   │           Next.js web app (web/)        │
+   │  check_message / lookup / feed         │   │  /        → marketing landing page       │
+   │  (+hotspot map) / sentinel / auth /home│   │  /admin/* → password-gated dashboard:     │
+   │                                        │   │  overview, reports, numbers, sentinel jobs│
+   └──────────────────┬─────────────────────┘   └──────────────────┬────────────────────────┘
+                       │                                            │
+                       └───────────────────┬────────────────────────┘
+                                            │ HTTPS / JSON
+                                            ▼
                          ┌────────────────────────────┐
                          │     Python FastAPI backend   │
                          │                              │
@@ -37,6 +42,12 @@
                          │  sentinel_jobs                │
                          └────────────────────────────┘
 ```
+
+The web app (`web/`) is a read-mostly consumer of the same FastAPI backend
+the Flutter app talks to — it adds no new data model, just three additional
+`GET` endpoints (`/numbers`, `/reports`, `/sentinel/jobs`) so the admin
+dashboard can list rather than only look up/submit. See "Admin dashboard
+auth" below for how `/admin/*` is gated.
 
 The backend's persistence layer sits behind a `Store` protocol
 (`backend/app/services/store.py`). In dev/test and in this challenge
@@ -110,3 +121,21 @@ weaponized against innocent numbers:
   Compliance & Risk Mitigation section).
 - **Dispute path** (roadmap): a number owner can contest a flag; disputed
   flags are hidden pending human review.
+
+## Admin dashboard auth
+
+`web/src/app/admin/*` (everything except `/admin/login`) is gated by
+`web/src/proxy.ts` (Next.js middleware), which checks for a signed session
+cookie set by `POST /api/admin/login` after the caller supplies the
+`ADMIN_PASSWORD` env var. The cookie value is a SHA-256 hash derived from
+`ADMIN_SESSION_SECRET` (or `ADMIN_PASSWORD` if unset) — stateless, no
+session store needed, and it fails closed if no password is configured at
+all. This is a deliberate MVP simplification for a single-team demo, not a
+multi-admin production auth system; the roadmap item is real Supabase Auth
+with a per-admin account and an `is_admin` role claim, matching the auth
+model the Flutter consumer app and `sample_data/seed.sql` already assume.
+The FastAPI endpoints the dashboard reads from (`/numbers`, `/reports`,
+`/sentinel/jobs`) are not themselves auth-gated in this MVP — they're
+read-only aggregate/list views with no PII beyond what `/numbers/{msisdn}`
+already exposes to any client; production hardening would add an API key
+or service-role check on these routes too.

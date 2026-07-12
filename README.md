@@ -30,6 +30,7 @@ tooling of their own.
 | **Number Lookup** | Search a phone number for a community-sourced reputation: report count, scam categories, last reported. Report a number in-app. |
 | **Trending Feed & Hotspot Map** | "Trending this week" scam categories and a province-level risk map (🟢/🟡/🔴), computed live from community reports with weighted rules — not AI, and the API says so explicitly. |
 | **Agent Fraud Sentinel (B2B)** | Upload a mobile-money agent transaction CSV; get back flagged transactions (rapid reversals, structuring, unusual hours) with human-readable reasons. |
+| **Landing page & Admin dashboard** | A Next.js web app (`web/`): a public marketing page (with live "trending this week" stats pulled from the API) and a password-gated admin dashboard for the report moderation queue, flagged-number review, and Sentinel job history. |
 
 See `docs/architecture.md` for the full system diagram and an explicit
 breakdown of where AI is used and where it deliberately isn't.
@@ -39,6 +40,7 @@ breakdown of where AI is used and where it deliberately isn't.
 ```
 chengetai/
 ├── app/            # Flutter app (Android-first), feature-first structure
+├── web/             # Next.js landing page + admin dashboard
 ├── backend/         # Python FastAPI backend
 │   └── tests/        # pytest suite (classifier, reputation, feed, sentinel, API)
 ├── sample_data/     # Synthetic scam corpus + transaction data, generation scripts, Supabase seed.sql
@@ -105,6 +107,22 @@ first-build check of `fl_chart` tooltip callback signatures and Material
 icon names (`gpp_bad_outlined`, `shield_moon_outlined`) against your
 installed SDK version.
 
+## Running the web app (landing page + admin dashboard)
+
+```bash
+cd web
+npm install
+cp .env.example .env.local   # set ADMIN_PASSWORD; CHENGETAI_API_BASE_URL defaults to localhost:8000
+npm run dev
+# Landing page at http://localhost:3000, admin dashboard at http://localhost:3000/admin
+```
+
+Requires the backend running (above) to render live data — the landing
+page's stats section and every `/admin/*` page will show a "backend
+unreachable" notice instead of crashing if it isn't. The admin dashboard is
+gated by a single shared `ADMIN_PASSWORD` (see `docs/architecture.md` →
+"Admin dashboard auth" for why, and the roadmap to real Supabase Auth).
+
 ## Demo script
 
 1. **Check Message**: paste an EcoCash "wrong deposit" style message → see
@@ -117,6 +135,10 @@ installed SDK version.
    same reports.
 4. **Sentinel**: upload `sample_data/transactions_sample.csv` → see flagged
    transactions with reasons (structuring, rapid reversal, unusual hours).
+5. **Landing page**: open `http://localhost:3000` → see the live "trending
+   this week" stats pulled from the same API.
+6. **Admin dashboard**: log in at `http://localhost:3000/admin/login` → see
+   the same reports/numbers/Sentinel data from an internal, table-based view.
 
 ## AI justification (summary)
 
@@ -146,6 +168,11 @@ installed SDK version.
 - The reputation system's abuse controls (rate limiting, duplicate
   collapse, public-flag threshold) are implemented and unit-tested, but a
   full human-review dispute flow is roadmap, not MVP.
+- The admin dashboard (`web/`) uses a single shared password, not per-admin
+  Supabase Auth accounts; the three list endpoints it reads from
+  (`/numbers`, `/reports`, `/sentinel/jobs`) are not themselves auth-gated
+  on the backend in this MVP (see `docs/architecture.md` → "Admin dashboard
+  auth").
 
 ## Docs
 
