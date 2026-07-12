@@ -49,6 +49,14 @@ Look up a phone number's reputation. `msisdn` accepts local (`0771234567`) or in
 
 ---
 
+## `GET /numbers`
+
+All numbers with at least one report, ranked by report count descending. Used by the admin dashboard's flagged-number review queue.
+
+**Response `200`**: array of the same shape as `GET /numbers/{msisdn}`.
+
+---
+
 ## `POST /reports`
 
 Report a number for a scam category.
@@ -73,6 +81,19 @@ Report a number for a scam category.
 - `recorded` — new report accepted, a confirmation SMS is sent if `reporter_id` was provided
 - `duplicate_collapsed` — same reporter already reported this number+category in the last 24h; recorded with zero trust weight so it doesn't inflate scores
 - `rate_limited` — reporter exceeded `REPORT_RATE_LIMIT_PER_HOUR` (default 5); not persisted
+
+---
+
+## `GET /reports?limit=50&category=&province=`
+
+Recent reports, newest first, optionally filtered by `category` and/or `province`. Used by the admin dashboard's moderation queue. `limit` defaults to 50, max 500.
+
+**Response `200`**
+```json
+[{ "id": "...", "msisdn": "0771234567", "category": "ecocash_reversal", "province": "Harare",
+   "message_excerpt": "reverse the money please", "reporter_id": null, "reporter_trust": 1.0,
+   "created_at": "2026-07-12T08:00:00Z" }]
+```
 
 ---
 
@@ -119,6 +140,18 @@ Upload a transaction CSV (`multipart/form-data`, field name `file`) for the Agen
   ],
   "summary_by_reason": { "3 transactions just under $500...": 5 }
 }
+```
+
+---
+
+## `GET /sentinel/jobs`
+
+Past analysis runs, newest first. Used by the admin dashboard's Sentinel job history table.
+
+**Response `200`**
+```json
+[{ "id": "...", "filename": "transactions_sample.csv", "n_transactions": 200, "n_flagged": 20,
+   "created_at": "2026-07-12T08:00:00Z" }]
 ```
 
 ---

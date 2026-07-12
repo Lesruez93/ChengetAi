@@ -80,7 +80,7 @@ def submit_report(store: Store, payload: ReportCreate) -> ReportResponse:
                            province=report.province, created_at=report.created_at, status="recorded")
 
 
-def _risk_level(number: PhoneNumber) -> str:
+def risk_level_for(number: PhoneNumber) -> str:
     if number.report_count == 0:
         return "unknown"
     if number.report_count >= 6 or len(number.categories) >= 3:
@@ -99,5 +99,5 @@ def lookup_number(store: Store, raw_msisdn: str) -> NumberReputationResponse:
         categories=number.categories,
         last_reported_at=number.last_reported_at,
         is_publicly_flagged=number.is_publicly_flagged,
-        risk_level=_risk_level(number),
+        risk_level=risk_level_for(number),
     )

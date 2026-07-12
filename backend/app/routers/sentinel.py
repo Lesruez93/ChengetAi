@@ -1,13 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from app.models.domain import SentinelJob
-from app.schemas.sentinel import FlaggedTransaction, SentinelAnalyzeResponse
+from app.schemas.sentinel import FlaggedTransaction, SentinelAnalyzeResponse, SentinelJobSummary
 from app.services.sentinel import InvalidTransactionFile, analyze_transactions
 from app.services.store import Store, get_store
 
 router = APIRouter(prefix="/sentinel", tags=["sentinel"])
 
 ANOMALY_SCORE_THRESHOLD = 0.55
+
+
+@router.get("/jobs", response_model=list[SentinelJobSummary])
+def list_jobs(store: Store = Depends(get_store)) -> list[SentinelJobSummary]:
+    """Past analysis runs, newest first. Used by the admin dashboard's Sentinel job history."""
+    return [
+        SentinelJobSummary(
+            id=j.id, filename=j.filename, n_transactions=j.n_transactions,
+            n_flagged=j.n_flagged, created_at=j.created_at,
+        )
+        for j in store.list_sentinel_jobs()
+    ]
 
 
 @router.post("/analyze", response_model=SentinelAnalyzeResponse)

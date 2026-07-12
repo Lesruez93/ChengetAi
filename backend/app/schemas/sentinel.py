@@ -20,3 +20,13 @@ class SentinelAnalyzeResponse(BaseModel):
     n_flagged: int
     flagged: list[FlaggedTransaction]
     summary_by_reason: dict[str, int]
+
+
+class SentinelJobSummary(BaseModel):
+    """One past analysis run, for the admin Sentinel job history table."""
+
+    id: str
+    filename: str
+    n_transactions: int
+    n_flagged: int
+    created_at: datetime

@@ -49,3 +49,13 @@ def test_unknown_number_has_unknown_risk_level(fresh_store):
     assert reputation.report_count == 0
     assert reputation.risk_level == "unknown"
     assert reputation.is_publicly_flagged is False
+
+
+def test_list_number_reputations_ranks_by_report_count(fresh_store):
+    submit_report(fresh_store, ReportCreate(msisdn="0771111111", category="fake_job"))
+    submit_report(fresh_store, ReportCreate(msisdn="0782222222", category="fake_forex", reporter_id="r1"))
+    submit_report(fresh_store, ReportCreate(msisdn="0782222222", category="fake_forex", reporter_id="r2"))
+
+    numbers = fresh_store.list_number_reputations()
+    assert [n.msisdn for n in numbers] == ["0782222222", "0771111111"]
+    assert numbers[0].report_count == 2

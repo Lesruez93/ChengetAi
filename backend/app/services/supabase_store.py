@@ -82,6 +82,15 @@ class SupabaseStore:
             is_publicly_flagged=len(reports) >= get_settings().number_public_flag_threshold,
         )
 
+    def list_number_reputations(self) -> list[PhoneNumber]:
+        # Computed live from `reports`, the same way upsert_number_reputation is, rather than
+        # read from the `numbers` cache table, since nothing currently writes that table on
+        # report insert (it exists in the schema for a future write-behind cache).
+        all_reports = self.list_reports()
+        msisdns = {r.msisdn for r in all_reports}
+        numbers = [self.upsert_number_reputation(m) for m in msisdns]
+        return sorted(numbers, key=lambda n: n.report_count, reverse=True)
+
     def list_feed_items(self) -> list[FeedItem]:
         rows = (
             self.client.table("feed_items").select("*").order("created_at", desc=True).execute().data or []
@@ -103,3 +112,15 @@ class SupabaseStore:
             "created_at": job.created_at.isoformat(),
         }).execute()
         return job
+
+    def list_sentinel_jobs(self) -> list[SentinelJob]:
+        rows = (
+            self.client.table("sentinel_jobs").select("*").order("created_at", desc=True).execute().data or []
+        )
+        return [
+            SentinelJob(
+                id=r["id"], filename=r["filename"], n_transactions=r.get("n_transactions", 0),
+                n_flagged=r.get("n_flagged", 0), created_at=datetime.fromisoformat(r["created_at"]),
+            )
+            for r in rows
+        ]

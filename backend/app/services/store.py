@@ -31,8 +31,10 @@ class Store(Protocol):
     def reports_for_msisdn(self, msisdn: str) -> list[Report]: ...
     def reports_by_reporter_since(self, reporter_id: str, since: datetime) -> list[Report]: ...
     def upsert_number_reputation(self, msisdn: str) -> PhoneNumber: ...
+    def list_number_reputations(self) -> list[PhoneNumber]: ...
     def list_feed_items(self) -> list[FeedItem]: ...
     def save_sentinel_job(self, job: SentinelJob) -> SentinelJob: ...
+    def list_sentinel_jobs(self) -> list[SentinelJob]: ...
 
 
 class InMemoryStore:
@@ -119,6 +121,11 @@ class InMemoryStore:
             is_publicly_flagged=len(reports) >= get_settings().number_public_flag_threshold,
         )
 
+    def list_number_reputations(self) -> list[PhoneNumber]:
+        msisdns = {r.msisdn for r in self._reports}
+        numbers = [self.upsert_number_reputation(m) for m in msisdns]
+        return sorted(numbers, key=lambda n: n.report_count, reverse=True)
+
     # -- feed --
     def list_feed_items(self) -> list[FeedItem]:
         return sorted(self._feed_items, key=lambda f: f.created_at, reverse=True)
@@ -127,6 +134,9 @@ class InMemoryStore:
     def save_sentinel_job(self, job: SentinelJob) -> SentinelJob:
         self._sentinel_jobs.append(job)
         return job
+
+    def list_sentinel_jobs(self) -> list[SentinelJob]:
+        return sorted(self._sentinel_jobs, key=lambda j: j.created_at, reverse=True)
 
 
 @lru_cache

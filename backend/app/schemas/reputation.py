@@ -28,3 +28,16 @@ class NumberReputationResponse(BaseModel):
     last_reported_at: datetime | None
     is_publicly_flagged: bool
     risk_level: Literal["unknown", "low", "medium", "high"]
+
+
+class ReportListItem(BaseModel):
+    """A single report, for the admin moderation queue (GET /reports)."""
+
+    id: str
+    msisdn: str
+    category: str
+    province: str
+    message_excerpt: str
+    reporter_id: str | None
+    reporter_trust: float
+    created_at: datetime
