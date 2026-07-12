@@ -6,7 +6,7 @@ import { severityForRiskLevel } from "@/lib/risk-colors";
 export const dynamic = "force-dynamic";
 
 function formatDate(iso: string | null) {
-  return iso ? new Date(iso).toLocaleString("en-ZW", { dateStyle: "medium", timeStyle: "short" }) : "—";
+  return iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "—";
 }
 
 export default async function FlaggedNumbersPage() {

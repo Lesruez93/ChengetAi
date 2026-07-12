@@ -4,7 +4,7 @@ import { ApiError, getReports } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("en-ZW", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
 export default async function ReportsPage({

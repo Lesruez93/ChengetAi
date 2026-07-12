@@ -39,6 +39,22 @@ tooling of their own.
 See `docs/architecture.md` for the full system diagram and an explicit
 breakdown of where AI is used and where it deliberately isn't.
 
+## Screenshots
+
+<p float="left">
+  <img src="docs/screenshots/landing-page.png" alt="Landing page" width="49%">
+  <img src="docs/screenshots/admin-overview.png" alt="Admin dashboard overview" width="49%">
+</p>
+<p float="left">
+  <img src="docs/screenshots/admin-reports.png" alt="Admin reports moderation queue" width="49%">
+  <img src="docs/screenshots/admin-sentinel.png" alt="Admin Sentinel job history" width="49%">
+</p>
+
+More in `docs/screenshots/` (`admin-numbers.png`, `admin-login.png`). All
+captured against a running backend with real seeded/uploaded data, not
+mockups. Flutter app screenshots aren't included yet — no Flutter SDK was
+available in this environment to run the app (see "Known limitations").
+
 ## Repository layout
 
 ```
