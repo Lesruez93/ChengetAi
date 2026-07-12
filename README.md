@@ -65,7 +65,8 @@ chengetai/
 │   └── tests/        # pytest suite (classifier, reputation, feed, sentinel, API)
 ├── sample_data/     # Synthetic scam corpus + transaction data, generation scripts, Supabase seed.sql
 ├── docs/            # Architecture, API reference, dataset statement, screenshots
-└── proposal/         # AI4I 2026 Track 3 proposal document
+├── proposal/         # AI4I 2026 Track 3 proposal document
+└── .github/workflows/ci.yml  # backend pytest + web build/lint on every push
 ```
 
 ## Running the backend
