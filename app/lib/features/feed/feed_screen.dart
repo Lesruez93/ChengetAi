@@ -5,6 +5,7 @@ import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/models/feed_models.dart';
 import '../../core/theme.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/risk_chip.dart';
 import '../../shared/widgets/stat_tile.dart';
@@ -54,6 +55,7 @@ class _FeedScreenState extends State<FeedScreen> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
+          leading: const AppLogo(),
           title: const Text('Scam Alerts'),
           bottom: const TabBar(
             indicatorColor: Colors.white,

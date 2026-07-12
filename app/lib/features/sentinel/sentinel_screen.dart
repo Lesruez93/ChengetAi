@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/api_client.dart';
 import '../../core/models/sentinel_models.dart';
 import '../../core/theme.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/stat_tile.dart';
 import 'widgets/flagged_transaction_tile.dart';
@@ -76,7 +77,7 @@ class _SentinelScreenState extends State<SentinelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Agent Fraud Sentinel')),
+      appBar: AppBar(leading: const AppLogo(), title: const Text('Agent Fraud Sentinel')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),

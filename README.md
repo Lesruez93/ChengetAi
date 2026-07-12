@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo-full.png" alt="ChengetAI" width="280">
+</p>
+
 # ChengetAI
 
 **"Chengeta"** — Shona for *to protect / to guard*.
@@ -180,5 +184,9 @@ gated by a single shared `ADMIN_PASSWORD` (see `docs/architecture.md` →
   behaviour, abuse-resistance design
 - `docs/api.md` — full API reference
 - `docs/dataset_statement.md` — dataset provenance, validation, privacy notes
+- `docs/assets/` — logo source files (`logo-mark.png` icon-only, `logo-horizontal.png`
+  icon+wordmark, `logo-full.png` icon+wordmark+tagline), reused as-is by the
+  Flutter app (`app/assets/branding/`), the web app (`web/public/`,
+  `web/src/app/icon.png`), and this README
 - `proposal/ChengetAI_AI4I_Proposal_Development.md` — the formal AI4I 2026
   Track 3 submission

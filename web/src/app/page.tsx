@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { BackendOfflineNotice } from "@/components/BackendOfflineNotice";
@@ -65,7 +66,15 @@ export default async function LandingPage() {
       <main className="flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden bg-surface-tint">
-          <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+          <Image
+            src="/logo-mark.png"
+            alt=""
+            width={480}
+            height={480}
+            priority
+            className="pointer-events-none absolute top-1/2 right-[-60px] hidden w-[380px] -translate-y-1/2 opacity-90 md:block lg:right-[-20px] lg:w-[460px]"
+          />
+          <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
             <span className="inline-flex items-center rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
               AI4I 2026 · POTRAZ · Track 3: Development
             </span>

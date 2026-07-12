@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -23,9 +24,7 @@ export function AdminNav() {
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-black/5 bg-surface-tint px-4 py-6 dark:border-white/10">
       <Link href="/" className="mb-8 flex items-center gap-2 px-2 text-base font-semibold text-brand-primary">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-primary text-xs text-white">
-          CG
-        </span>
+        <Image src="/logo-mark.png" alt="ChengetAI" width={28} height={28} className="h-7 w-7" />
         ChengetAI
       </Link>
       <nav className="flex flex-1 flex-col gap-1">

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -33,9 +34,7 @@ function LoginForm() {
     <div className="flex min-h-screen flex-1 items-center justify-center bg-surface-tint px-6">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm dark:bg-white/5">
         <div className="mb-6 flex items-center gap-2 text-lg font-semibold text-brand-primary">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary text-sm text-white">
-            CG
-          </span>
+          <Image src="/logo-mark.png" alt="ChengetAI" width={32} height={32} className="h-8 w-8" />
           ChengetAI Admin
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

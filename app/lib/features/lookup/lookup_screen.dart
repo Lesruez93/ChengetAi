@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
 import '../../core/models/reputation_models.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/number_reputation_card.dart';
 import '../../shared/widgets/report_sheet.dart';
@@ -80,7 +81,7 @@ class _LookupScreenState extends State<LookupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Number Lookup')),
+      appBar: AppBar(leading: const AppLogo(), title: const Text('Number Lookup')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
