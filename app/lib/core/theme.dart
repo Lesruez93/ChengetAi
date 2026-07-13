@@ -77,7 +77,15 @@ ThemeData buildAppTheme() {
       elevation: 0,
       centerTitle: false,
     ),
-    cardTheme: CardTheme(
+    // Tabs live inside the (dark teal) AppBar, so labels need to be light —
+    // the Material 3 default label colors assume a light surface and are
+    // nearly invisible on brandPrimary otherwise.
+    tabBarTheme: TabBarThemeData(
+      labelColor: Colors.white,
+      unselectedLabelColor: Colors.white.withOpacity(0.7),
+      indicatorColor: Colors.white,
+    ),
+    cardTheme: CardThemeData(
       elevation: 1,
       surfaceTintColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

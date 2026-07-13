@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only: permits cleartext HTTP to the local dev backend so the app
+     can reach `uvicorn` running on the developer's machine over LAN/adb.
+     Not merged into release builds. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">192.168.1.231</domain>
+    </domain-config>
+</network-security-config>
