@@ -75,10 +75,7 @@ export default async function LandingPage() {
             className="pointer-events-none absolute top-1/2 right-[-60px] hidden w-[380px] -translate-y-1/2 opacity-90 md:block lg:right-[-20px] lg:w-[460px]"
           />
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
-            <span className="inline-flex items-center rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
-              AI4I 2026 · POTRAZ · Track 3: Development
-            </span>
-            <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
               Chengeta — protect your money from Zimbabwe&apos;s fastest-growing scams.
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-neutral">

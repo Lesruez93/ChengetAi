@@ -33,7 +33,7 @@ dependencies:
   http: ^1.2.2
 
   # CSV file selection for the Agent Fraud Sentinel upload flow.
-  file_picker: ^8.1.2
+  file_picker: ^10.3.4
 
   # Bar chart for the sentinel "flags by reason" summary.
   fl_chart: ^0.69.0
