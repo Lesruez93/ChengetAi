@@ -39,21 +39,15 @@ tooling of their own.
 See `docs/architecture.md` for the full system diagram and an explicit
 breakdown of where AI is used and where it deliberately isn't.
 
-## Screenshots
+## Screenshots & demo
 
-<p float="left">
-  <img src="docs/screenshots/landing-page.png" alt="Landing page" width="49%">
-  <img src="docs/screenshots/admin-overview.png" alt="Admin dashboard overview" width="49%">
-</p>
-<p float="left">
-  <img src="docs/screenshots/admin-reports.png" alt="Admin reports moderation queue" width="49%">
-  <img src="docs/screenshots/admin-sentinel.png" alt="Admin Sentinel job history" width="49%">
-</p>
+**All current screenshots, demo walkthroughs, and mobile app links are hosted on the live landing
+page: [chengetai.vercel.app](https://chengetai.vercel.app)** — that page is the single reference
+point for judges going forward, rather than duplicating images across this README and the proposal.
 
-More in `docs/screenshots/` (`admin-numbers.png`, `admin-login.png`). All
-captured against a running backend with real seeded/uploaded data, not
-mockups. Flutter app screenshots aren't included yet — no Flutter SDK was
-available in this environment to run the app (see "Known limitations").
+A historical local set (`docs/screenshots/`: `landing-page.png`, `admin-overview.png`,
+`admin-reports.png`, `admin-sentinel.png`, `admin-numbers.png`, `admin-login.png`) remains in the
+repo for reference, captured against a running backend with real seeded/uploaded data, not mockups.
 
 ## Repository layout
 
@@ -195,12 +189,25 @@ gated by a single shared `ADMIN_PASSWORD` (see `docs/architecture.md` →
   on the backend in this MVP (see `docs/architecture.md` → "Admin dashboard
   auth").
 
+## Live demo
+
+**[chengetai.vercel.app](https://chengetai.vercel.app)** — the deployed landing page, and the
+single evidence hub for screenshots, demo walkthroughs, and mobile app links referenced from the
+proposal.
+
 ## Docs
 
 - `docs/architecture.md` — system diagram, AI justification, offline
   behaviour, abuse-resistance design
 - `docs/api.md` — full API reference
 - `docs/dataset_statement.md` — dataset provenance, validation, privacy notes
+- `docs/business_model_summary.md` — one-page business model summary (ToR Annex A)
+- `docs/deployment_plan.md` — hosting, operator, support, monitoring, backup/recovery,
+  scale pathway (ToR Annex B)
+- `docs/risk_compliance_checklist.md` — standalone privacy/security/bias/misuse checklist
+- `docs/accessibility.md` — contrast, font size, low-bandwidth, and language considerations
+- `docs/usability_testing.md` — internal testing log and planned pilot usability protocol
+- `docs/pitch_deck_outline.md` — pitch deck content plan
 - `docs/assets/` — logo source files (`logo-mark.png` icon-only, `logo-horizontal.png`
   icon+wordmark, `logo-full.png` icon+wordmark+tagline), reused as-is by the
   Flutter app (`app/assets/branding/`), the web app (`web/public/`,

@@ -13,8 +13,9 @@
 
 | | |
 |---|---|
-| **Team Name** | ChengetAI Team *(edit as needed)* |
-| **Lead Innovator** | [Lead Innovator Name] *(contact: lesterrusike@gmail.com)* |
+| **Team Name** | ChengetAI Team |
+| **Lead Innovator** | Lester Rusike *(contact: lesterrusike@gmail.com)* |
+| **Frontend Developer** | Agnes Goora |
 | **Submission Date** | 12 July 2026 |
 | **Product** | Mobile-first AI protection app against mobile-money scams, fraud, and fake-number harassment |
 
@@ -25,6 +26,8 @@
 ## Executive Summary
 
 ChengetAI is a mobile-first AI application that helps ordinary Zimbabweans, small businesses, and mobile-money agents detect and avoid scams in real time. It combines four capabilities behind one app and one backend: (1) an AI scam-message detector tuned to Zimbabwean patterns such as EcoCash "wrong deposit" reversal scams and fake job offers; (2) a Truecaller-style, crowd-sourced phone-number reputation system; (3) an Agent Fraud Sentinel that applies anomaly detection to mobile-money agent transaction logs for SMEs and agent networks; and (4) a trending-scams feed with a province-level hotspot map. A working backend (FastAPI, 22 passing automated tests), a seeded Postgres schema with Row Level Security, and a Flutter Android-first MVP app are already implemented. This proposal sets out the problem, the technical design, the roadmap to a CCE-ready pilot, our compliance posture under Zimbabwe's Data Protection Act, and a realistic path to sustainability.
+
+**Live demo and evidence hub: [chengetai.vercel.app](https://chengetai.vercel.app)** — the deployed landing page is the single reference point for judges: product screenshots, demo walkthroughs, and mobile app access/download links are hosted there rather than duplicated across this document.
 
 <!-- pagebreak -->
 
@@ -173,6 +176,7 @@ A crowd-sourced number-reputation system is only trustworthy if it resists being
 - A synthetic, fully disclosed scam-message corpus (143 labeled messages, six scam categories) and transaction dataset (200 transactions, 20 injected anomalies) with generation scripts, documented in `docs/dataset_statement.md`.
 - A Flutter Android-first MVP app covering Check Message, Number Lookup, Feed (trending + hotspot), Sentinel CSV upload, minimal authentication, and a home shell.
 - Version-pinned dependency manifest (`backend/requirements.txt`) — every package pinned to an exact version (e.g. `fastapi==0.115.6`, `scikit-learn==1.6.0`, `pandas==2.2.3`), so the CCE build is fully reproducible and not exposed to upstream breaking changes during evaluation.
+- A deployed Next.js landing page at **[chengetai.vercel.app](https://chengetai.vercel.app)**, serving as the public demo hub (screenshots, walkthroughs, mobile app links) referenced throughout this proposal instead of duplicating evidence inline.
 
 ### 3.2 Milestones
 
@@ -296,3 +300,44 @@ The figures below are **honest, order-of-magnitude estimates** for an early-stag
 | **12-month subtotal** | **≈ $4,200–10,500** | |
 
 These ranges deliberately exclude personnel costs, which depend on team composition and funding structure the challenge process itself will help determine; they cover infrastructure and direct operating costs only. We consider this level of specificity — real ranges tied to named cost drivers, rather than a single unsourced total — more useful to reviewers than false precision.
+
+<!-- pagebreak -->
+
+## Section 6: Team Capability & Implementation Plan
+
+### 6.1 Team roster
+
+| Member | Role | Primary responsibility |
+|---|---|---|
+| **Lester Rusike** | Lead Innovator | Product strategy, backend/AI engineering (FastAPI, classifier, Sentinel), system architecture, Supabase schema and security design, compliance posture, and this proposal. |
+| **Agnes Goora** | Frontend Developer | Flutter (Android-first MVP) and web (Next.js landing page / admin dashboard) UI implementation. |
+
+### 6.2 Skills coverage and gaps
+
+The team currently covers product/backend engineering and frontend/mobile development directly.
+Two gaps are disclosed honestly rather than glossed over:
+
+| Gap | How it will be filled |
+|---|---|
+| Dedicated business/legal support for the pilot data-sharing agreement and the formal Data Protection Act compliance audit (proposal §3.2, "Institutionalization" phase) | Bootcamp mentorship and partner-network introductions (POTRAZ/CCE); a legal/compliance advisor is a targeted addition ahead of the pilot-readiness phase, not the bootcamp phase. |
+| Dedicated QA/security specialist | Currently covered by the automated test suite (22 `pytest` tests) and the CCE security testing plan (proposal §3.4); a broader security review is planned for the ZCHPC CCE testing pass rather than assumed to be unnecessary. |
+
+No other external code, datasets, or paid tools beyond what is already disclosed in this proposal
+(Anthropic API for the LLM classifier strategy, Supabase, Twilio) were used. The synthetic training
+datasets (`sample_data/`) were generated by the team, not sourced from a third party.
+
+### 6.3 Ownership after the challenge
+
+**Lester Rusike (Lead Innovator)** is the named operator responsible for hosting, maintenance, and
+communication after the challenge (see `docs/deployment_plan.md` → Operator), until the team roster
+grows during the pilot-readiness phase.
+
+### 6.4 30-day and 90-day plan
+
+Reflects the milestone table in proposal §3.2 and §12.2 of the ToR, with named ownership:
+
+| Period | Focus | Owner |
+|---|---|---|
+| 0–30 days | Clean codebase, harden MVP from judge feedback, confirm pilot partner (currently a target profile, not yet secured — see `docs/deployment_plan.md`), complete the security checklist (`docs/risk_compliance_checklist.md`) | Lester Rusike |
+| 31–60 days | Run pilot with limited users, collect feedback (`docs/usability_testing.md`), fix defects, improve user onboarding | Lester Rusike (backend/pilot), Agnes Goora (UI fixes from feedback) |
+| 61–90 days | Prepare adoption case, refine business model, finalize support plan, update technical documentation | Lester Rusike |
