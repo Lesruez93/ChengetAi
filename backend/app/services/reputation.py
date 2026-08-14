@@ -16,12 +16,19 @@ defamation and reliability risk (see docs/architecture.md):
 
 from __future__ import annotations
 
+import hashlib
 import re
 from datetime import datetime, timedelta, timezone
 
 from app.config import get_settings
 from app.models.domain import PhoneNumber, Report
-from app.schemas.reputation import NumberReputationResponse, ReportCreate, ReportResponse
+from app.schemas.reputation import (
+    FlaggedNumberItem,
+    FlaggedNumbersSyncResponse,
+    NumberReputationResponse,
+    ReportCreate,
+    ReportResponse,
+)
 from app.services.store import Store
 
 MSISDN_RE = re.compile(r"^0\d{9}$")
@@ -88,6 +95,55 @@ def risk_level_for(number: PhoneNumber) -> str:
     if number.report_count >= 3:
         return "medium"
     return "low"
+
+
+def top_category_for(number: PhoneNumber) -> str:
+    """The category a number is most reported for. Ties break alphabetically so
+    the sync payload — and therefore its version hash — is deterministic."""
+    if not number.categories:
+        return "other"
+    return min(number.categories.items(), key=lambda kv: (-kv[1], kv[0]))[0]
+
+
+def build_flagged_sync(store: Store, known_version: str | None = None) -> FlaggedNumbersSyncResponse:
+    """The publicly-flagged number set, for on-device call/SMS screening.
+
+    Only numbers past `NUMBER_PUBLIC_FLAG_THRESHOLD` are included. That is the
+    same gate the UI uses, and it matters more here than anywhere else in the
+    app: a number in this payload causes an automatic on-screen accusation
+    during a live call, with no human reading it first. A single hostile report
+    must never be able to do that (see the abuse-resistance notes above).
+    """
+    flagged = [n for n in store.list_number_reputations() if n.is_publicly_flagged]
+    items = sorted(
+        (
+            FlaggedNumberItem(
+                msisdn=n.msisdn,
+                risk_level=risk_level_for(n),  # never "unknown": flagged implies >=1 report
+                report_count=n.report_count,
+                top_category=top_category_for(n),
+            )
+            for n in flagged
+        ),
+        key=lambda i: i.msisdn,
+    )
+
+    fingerprint = "\n".join(f"{i.msisdn}:{i.report_count}:{i.risk_level}:{i.top_category}" for i in items)
+    version = hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()[:16]
+    unchanged = known_version is not None and known_version == version
+
+    return FlaggedNumbersSyncResponse(
+        version=version,
+        generated_at=datetime.now(timezone.utc),
+        count=len(items),
+        unchanged=unchanged,
+        numbers=[] if unchanged else items,
+        method_note=(
+            "Crowd-sourced community reports aggregated by weighted rules, not an AI model. "
+            "Only numbers past the public-flag threshold are included. A flag means this number "
+            "has been reported repeatedly — not that its current caller is a criminal."
+        ),
+    )
 
 
 def lookup_number(store: Store, raw_msisdn: str) -> NumberReputationResponse:

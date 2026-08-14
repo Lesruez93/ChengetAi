@@ -30,6 +30,34 @@ class NumberReputationResponse(BaseModel):
     risk_level: Literal["unknown", "low", "medium", "high"]
 
 
+class FlaggedNumberItem(BaseModel):
+    """One entry in the on-device blocklist. Deliberately minimal — the device
+    only needs enough to render a warning, not the full report history."""
+
+    msisdn: str
+    risk_level: Literal["low", "medium", "high"]
+    report_count: int
+    top_category: str
+
+
+class FlaggedNumbersSyncResponse(BaseModel):
+    """Bulk download of publicly-flagged numbers for offline, on-device matching
+    (see `docs/architecture.md` → "Live call & SMS screening").
+
+    `version` is a content hash of the payload. Clients pass it back as
+    `known_version` on the next sync; if nothing changed the server replies
+    with `unchanged=true` and an empty `numbers` list, which keeps the common
+    case near-free on a metered 2G connection.
+    """
+
+    version: str
+    generated_at: datetime
+    count: int
+    unchanged: bool = False
+    numbers: list[FlaggedNumberItem]
+    method_note: str
+
+
 class ReportListItem(BaseModel):
     """A single report, for the admin moderation queue (GET /reports)."""
 

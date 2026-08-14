@@ -4,6 +4,7 @@ import '../../core/api_client.dart';
 import '../check_message/check_message_screen.dart';
 import '../feed/feed_screen.dart';
 import '../lookup/lookup_screen.dart';
+import '../protection/protection_screen.dart';
 import '../sentinel/sentinel_screen.dart';
 
 /// Bottom-nav shell tying the four consumer/B2B features together.
@@ -29,6 +30,7 @@ class _HomeShellState extends State<HomeShell> {
   late final List<Widget> _tabs = <Widget>[
     CheckMessageScreen(apiClient: _apiClient),
     LookupScreen(apiClient: _apiClient),
+    ProtectionScreen(apiClient: _apiClient),
     FeedScreen(apiClient: _apiClient),
     SentinelScreen(apiClient: _apiClient),
   ];
@@ -36,6 +38,7 @@ class _HomeShellState extends State<HomeShell> {
   static const List<NavigationDestination> _destinations = <NavigationDestination>[
     NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Check'),
     NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: 'Lookup'),
+    NavigationDestination(icon: Icon(Icons.shield_outlined), selectedIcon: Icon(Icons.shield), label: 'Protect'),
     NavigationDestination(icon: Icon(Icons.trending_up_outlined), selectedIcon: Icon(Icons.trending_up), label: 'Alerts'),
     NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Sentinel'),
   ];

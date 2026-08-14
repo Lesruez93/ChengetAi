@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'models/classify_models.dart';
 import 'models/feed_models.dart';
+import 'models/protection_models.dart';
 import 'models/reputation_models.dart';
 import 'models/sentinel_models.dart';
 
@@ -108,6 +109,23 @@ class ApiClient {
   /// normalizes.
   Future<NumberReputation> lookupNumber(String msisdn) {
     return _get('/numbers/${Uri.encodeComponent(msisdn)}', NumberReputation.fromJson);
+  }
+
+  /// `GET /numbers/flagged/sync` — the publicly-flagged number set, for the
+  /// on-device call/SMS blocklist.
+  ///
+  /// Pass the [knownVersion] currently stored on the device; if the server's
+  /// set still hashes to the same value it replies with `unchanged: true` and
+  /// no payload, which keeps a routine sync down to a few hundred bytes on a
+  /// metered connection.
+  Future<FlaggedNumbersSync> syncFlaggedNumbers({String? knownVersion}) {
+    return _get(
+      '/numbers/flagged/sync',
+      FlaggedNumbersSync.fromJson,
+      query: <String, String>{
+        if (knownVersion != null && knownVersion.isNotEmpty) 'known_version': knownVersion,
+      },
+    );
   }
 
   /// `POST /reports` — report a number for a scam category.

@@ -1,5 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Live scam screening. Deliberately the smallest set that works:
+         - RECEIVE_SMS lets SmsScamReceiver see incoming messages. We do NOT
+           request READ_SMS: nothing here reads the user's existing inbox.
+         - POST_NOTIFICATIONS (API 33+) is what makes a warning visible; without
+           it screening still runs and logs, it just can't speak up.
+         - Call screening needs NO permission at all — it is gated by
+           ROLE_CALL_SCREENING, which the user grants at runtime. In particular
+           this app never asks for READ_CALL_LOG or READ_PHONE_STATE. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Telephony is optional so the app still installs on tablets/Chromebooks;
+         the Protection screen reports screening as unsupported there. -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+
     <application
         android:label="chengetai"
         android:name="${applicationName}"
@@ -26,6 +42,31 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Incoming-call screening. Bound by the system only while the user
+             holds ROLE_CALL_SCREENING; the BIND_SCREENING_SERVICE permission
+             ensures nothing but the OS can bind to it. -->
+        <service
+            android:name=".ScamCallScreeningService"
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService"/>
+            </intent-filter>
+        </service>
+
+        <!-- Passive SMS listener: warns, never intercepts. This is not the
+             default SMS handler, so messages are still delivered to whichever
+             app the user actually uses. android:permission restricts the
+             broadcast to the system, so another app can't forge a delivery. -->
+        <receiver
+            android:name=".SmsScamReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

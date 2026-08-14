@@ -2,12 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.messaging.sms import send_report_confirmation
 from app.schemas.reputation import (
+    FlaggedNumbersSyncResponse,
     NumberReputationResponse,
     ReportCreate,
     ReportListItem,
     ReportResponse,
 )
-from app.services.reputation import ValidationError, lookup_number, risk_level_for, submit_report
+from app.services.reputation import (
+    ValidationError,
+    build_flagged_sync,
+    lookup_number,
+    risk_level_for,
+    submit_report,
+)
 from app.services.store import Store, get_store
 
 router = APIRouter(tags=["numbers"])
@@ -25,6 +32,23 @@ def list_flagged_numbers(store: Store = Depends(get_store)) -> list[NumberReputa
         )
         for n in store.list_number_reputations()
     ]
+
+
+@router.get("/numbers/flagged/sync", response_model=FlaggedNumbersSyncResponse)
+def sync_flagged_numbers(
+    known_version: str | None = Query(None, description="Version held by the client; echo it back to skip an unchanged download."),
+    store: Store = Depends(get_store),
+) -> FlaggedNumbersSyncResponse:
+    """Bulk download of publicly-flagged numbers, for the Android app's on-device
+    call/SMS screening.
+
+    Deliberately a *pull* of the whole flagged set rather than a per-call lookup:
+    screening every incoming call server-side would hand the backend a live log of
+    who is calling each user, which is exactly the surveillance risk
+    `docs/risk_compliance_checklist.md` commits to avoiding. Matching happens on
+    the handset; the number never leaves it.
+    """
+    return build_flagged_sync(store, known_version)
 
 
 @router.get("/numbers/{msisdn}", response_model=NumberReputationResponse)
