@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import classify, feed, numbers, sentinel
+from app.routers import analyze, classify, feed, numbers, sentinel
 
 settings = get_settings()
 
@@ -25,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(analyze.router)
 app.include_router(classify.router)
 app.include_router(numbers.router)
 app.include_router(feed.router)

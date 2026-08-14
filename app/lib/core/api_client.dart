@@ -4,8 +4,10 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import 'constants.dart';
+import 'models/analyze_models.dart';
 import 'models/classify_models.dart';
 import 'models/feed_models.dart';
+import 'models/protection_models.dart';
 import 'models/reputation_models.dart';
 import 'models/sentinel_models.dart';
 
@@ -103,11 +105,42 @@ class ApiClient {
     );
   }
 
+  /// `POST /analyze` — check a mixed paste: message text, links, phone numbers,
+  /// or any combination. Wraps [classify] and adds link and number checks,
+  /// returning one verdict plus the per-entity findings behind it.
+  Future<AnalyzeResponse> analyze(String text, {String? strategy}) {
+    return _post(
+      '/analyze',
+      <String, dynamic>{
+        'text': text,
+        if (strategy != null) 'strategy': strategy,
+      },
+      AnalyzeResponse.fromJson,
+    );
+  }
+
   /// `GET /numbers/{msisdn}` — number reputation lookup. Accepts local
   /// (0771234567) or international (+263771234567) formats; the backend
   /// normalizes.
   Future<NumberReputation> lookupNumber(String msisdn) {
     return _get('/numbers/${Uri.encodeComponent(msisdn)}', NumberReputation.fromJson);
+  }
+
+  /// `GET /numbers/flagged/sync` — the publicly-flagged number set, for the
+  /// on-device call/SMS blocklist.
+  ///
+  /// Pass the [knownVersion] currently stored on the device; if the server's
+  /// set still hashes to the same value it replies with `unchanged: true` and
+  /// no payload, which keeps a routine sync down to a few hundred bytes on a
+  /// metered connection.
+  Future<FlaggedNumbersSync> syncFlaggedNumbers({String? knownVersion}) {
+    return _get(
+      '/numbers/flagged/sync',
+      FlaggedNumbersSync.fromJson,
+      query: <String, String>{
+        if (knownVersion != null && knownVersion.isNotEmpty) 'known_version': knownVersion,
+      },
+    );
   }
 
   /// `POST /reports` — report a number for a scam category.

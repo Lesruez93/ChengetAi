@@ -19,7 +19,11 @@ android {
         applicationId = "com.chengetai.chengetai"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // Pinned rather than inherited from `flutter.minSdkVersion`: call
+        // screening needs CallScreeningService (API 24) and RoleManager's
+        // ROLE_CALL_SCREENING (API 29). 24 is the floor for the app to build at
+        // all; below 29 it runs with screening reported as unsupported.
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

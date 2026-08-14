@@ -1,5 +1,11 @@
 from app.schemas.reputation import ReportCreate
-from app.services.reputation import ValidationError, lookup_number, normalize_msisdn, submit_report
+from app.services.reputation import (
+    ValidationError,
+    build_flagged_sync,
+    lookup_number,
+    normalize_msisdn,
+    submit_report,
+)
 
 
 def test_normalize_msisdn_accepts_local_and_international_formats():
@@ -59,3 +65,50 @@ def test_list_number_reputations_ranks_by_report_count(fresh_store):
     numbers = fresh_store.list_number_reputations()
     assert [n.msisdn for n in numbers] == ["0782222222", "0771111111"]
     assert numbers[0].report_count == 2
+
+
+def test_flagged_sync_excludes_numbers_below_public_flag_threshold(fresh_store):
+    # One report is not enough to put a number on every user's handset.
+    submit_report(fresh_store, ReportCreate(msisdn="0771111111", category="fake_job"))
+    for i in range(4):
+        submit_report(fresh_store, ReportCreate(msisdn="0782222222", category="fake_forex", reporter_id=f"r{i}"))
+
+    sync = build_flagged_sync(fresh_store)
+    assert [n.msisdn for n in sync.numbers] == ["0782222222"]
+    assert sync.count == 1
+    assert all(n.risk_level != "unknown" for n in sync.numbers)
+
+
+def test_flagged_sync_reports_top_category(fresh_store):
+    for i in range(3):
+        submit_report(fresh_store, ReportCreate(msisdn="0761111111", category="ecocash_reversal", reporter_id=f"a{i}"))
+    submit_report(fresh_store, ReportCreate(msisdn="0761111111", category="fake_job", reporter_id="b0"))
+
+    sync = build_flagged_sync(fresh_store)
+    assert sync.numbers[0].top_category == "ecocash_reversal"
+
+
+def test_flagged_sync_version_is_stable_until_reports_change(fresh_store):
+    for i in range(3):
+        submit_report(fresh_store, ReportCreate(msisdn="0761111111", category="ecocash_reversal", reporter_id=f"a{i}"))
+
+    first = build_flagged_sync(fresh_store)
+    assert build_flagged_sync(fresh_store).version == first.version
+
+    submit_report(fresh_store, ReportCreate(msisdn="0761111111", category="fake_job", reporter_id="b0"))
+    assert build_flagged_sync(fresh_store).version != first.version
+
+
+def test_flagged_sync_skips_payload_when_client_version_matches(fresh_store):
+    for i in range(3):
+        submit_report(fresh_store, ReportCreate(msisdn="0761111111", category="ecocash_reversal", reporter_id=f"a{i}"))
+
+    version = build_flagged_sync(fresh_store).version
+    unchanged = build_flagged_sync(fresh_store, known_version=version)
+    assert unchanged.unchanged is True
+    assert unchanged.numbers == []
+    assert unchanged.count == 1  # count still reports the true set size
+
+    stale = build_flagged_sync(fresh_store, known_version="deadbeefdeadbeef")
+    assert stale.unchanged is False
+    assert len(stale.numbers) == 1

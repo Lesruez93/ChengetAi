@@ -30,8 +30,9 @@ tooling of their own.
 
 | Module | What it does |
 |---|---|
-| **Check Message** | Paste or share a message; an AI classifier verdicts it scam / suspicious / safe with a plain-language explanation and highlighted risk phrases. |
+| **Check Anything** | One text box that takes whatever you paste — a message, a link, a phone number, or all three at once. Message wording goes to the AI classifier, numbers to the community reputation store, links to address-shape heuristics; you get one verdict with every finding behind it. |
 | **Number Lookup** | Search a phone number for a community-sourced reputation: report count, scam categories, last reported. Report a number in-app. |
+| **Live Protection (Android)** | Screens incoming calls and SMS against the community blocklist automatically, on the handset. Warns while the phone is still ringing, and can auto-reject the worst-reported numbers if you opt in. Who contacts you is never sent to our servers. |
 | **Trending Feed & Hotspot Map** | "Trending this week" scam categories and a province-level risk map (🟢/🟡/🔴), computed live from community reports with weighted rules — not AI, and the API says so explicitly. |
 | **Agent Fraud Sentinel (B2B)** | Upload a mobile-money agent transaction CSV; get back flagged transactions (rapid reversals, structuring, unusual hours) with human-readable reasons. |
 | **Landing page & Admin dashboard** | A Next.js web app (`web/`): a public marketing page (with live "trending this week" stats pulled from the API) and a password-gated admin dashboard for the report moderation queue, flagged-number review, and Sentinel job history. |
@@ -56,7 +57,7 @@ chengetai/
 ├── app/            # Flutter app (Android-first), feature-first structure
 ├── web/             # Next.js landing page + admin dashboard
 ├── backend/         # Python FastAPI backend
-│   └── tests/        # pytest suite (classifier, reputation, feed, sentinel, API)
+│   └── tests/        # pytest suite (classifier, reputation, analyzer, feed, sentinel, API)
 ├── sample_data/     # Synthetic scam corpus + transaction data, generation scripts, Supabase seed.sql
 ├── docs/            # Architecture, API reference, dataset statement, screenshots
 └── .github/workflows/ci.yml  # backend pytest + web build/lint on every push
@@ -86,7 +87,7 @@ gracefully falls back to the baseline if the key is missing).
 Run the test suite:
 
 ```bash
-cd backend && .venv/bin/pytest -q   # 22 tests: classifier, reputation, feed, sentinel, API
+cd backend && .venv/bin/pytest -q   # 55 tests: classifier, reputation, analyzer, feed, sentinel, API
 ```
 
 Regenerate the synthetic sample data (already committed, regeneration is
@@ -101,12 +102,11 @@ python3 sample_data/generate_transactions.py
 
 ```bash
 cd app
-# Platform folders (android/, ios/) aren't checked in, so they scaffold
-# cleanly against whatever Flutter/AGP/Kotlin version you have locally:
-flutter create . --org com.chengetai --project-name chengetai
-# Then confirm android/app/src/main/AndroidManifest.xml has the INTERNET
-# permission (every screen talks to the backend):
-#   <uses-permission android:name="android.permission.INTERNET" />
+# android/ IS checked in and carries hand-written Kotlin for call/SMS
+# screening (ScamCallScreeningService, SmsScamReceiver, ProtectionChannel)
+# plus the manifest entries that register them. Do NOT run
+# `flutter create .` over this checkout — it will overwrite the manifest and
+# drop live protection. ios/ is not scaffolded; the app is Android-first.
 
 flutter pub get
 # Android emulator talks to the backend at http://10.0.2.2:8000 by default
@@ -139,19 +139,25 @@ gated by a single shared `ADMIN_PASSWORD` (see `docs/architecture.md` →
 
 ## Demo script
 
-1. **Check Message**: paste an EcoCash "wrong deposit" style message → see
-   a `scam` verdict with highlighted risk phrases and an explanation → tap
-   *Report this number*.
+1. **Check Anything**: paste an EcoCash "wrong deposit" style message that
+   also carries a link and a number, e.g. `Confirmed. You have received $80.
+   Kana isiri yako verify at http://secure-ecocash.co.zw.login.tk/verify or
+   call 0771234567` → see one `scam` verdict, the number's report history,
+   the link called out as impersonating ecocash.co.zw, and the classifier's
+   highlighted risk phrases → tap *Report this number*.
 2. **Number Lookup**: search `0771234567` (seeded sample data) → see its
    report history and risk level.
 3. **Feed**: open the Alerts tab → see the seeded trending items, then the
    live "Trending This Week" list and province hotspot map built from the
    same reports.
-4. **Sentinel**: upload `sample_data/transactions_sample.csv` → see flagged
+4. **Live Protection**: open the Protect tab → switch on *Screen incoming
+   calls*, grant the role → the blocklist downloads → call the device from
+   `0771234567` (seeded with 3 reports) and see the warning while it rings.
+5. **Sentinel**: upload `sample_data/transactions_sample.csv` → see flagged
    transactions with reasons (structuring, rapid reversal, unusual hours).
-5. **Landing page**: open `http://localhost:3000` → see the live "trending
+6. **Landing page**: open `http://localhost:3000` → see the live "trending
    this week" stats pulled from the same API.
-6. **Admin dashboard**: log in at `http://localhost:3000/admin/login` → see
+7. **Admin dashboard**: log in at `http://localhost:3000/admin/login` → see
    the same reports/numbers/Sentinel data from an internal, table-based view.
 
 ## AI justification (summary)
@@ -173,9 +179,21 @@ gated by a single shared `ADMIN_PASSWORD` (see `docs/architecture.md` →
 
 - Both sample datasets (`sample_data/`) are **synthetic**, disclosed in
   `docs/dataset_statement.md` — not real user messages or real transactions.
-- No live SMS interception (Android share-intent / manual paste only in
-  this MVP), no iOS build, no telco integrations, no real payments, no real
-  bank data.
+- Live call/SMS screening is Android-only and needs Android 10+ for the
+  call-screening role. There is no background sync service: the on-device
+  blocklist refreshes when the app is opened, and the Protection screen
+  warns once it is over a day old. iOS cannot implement this at all (see
+  `docs/architecture.md` → "Live call & SMS screening").
+- Automatic SMS screening matches the sender against the blocklist and scans
+  the body with a short on-device keyword list, *not* the trained classifier
+  — message text is never auto-uploaded. It will miss novel phrasing; the
+  Check tab runs the real classifier on anything you paste in yourself.
+- The link checker judges a URL's address only and never fetches it, so a
+  hostile page on a clean-looking domain reads as "not checked" rather than
+  dangerous. `unknown` is deliberately not the same as safe.
+- No OS share-intent handler yet (paste, or the Paste button, rather than
+  "share to ChengetAI"), no iOS build, no telco integrations, no real
+  payments, no real bank data.
 - The backend's `SupabaseStore` is now connected to a live Supabase project
   (schema applied, RLS enabled on all tables, write-through verified end to
   end) — set `USE_SUPABASE=true` in `backend/.env`. The Flutter app's auth

@@ -80,3 +80,29 @@ def test_sentinel_jobs_endpoint_lists_past_runs(client):
     assert len(jobs) == 1
     assert jobs[0]["filename"] == "transactions_sample.csv"
     assert jobs[0]["n_transactions"] > 0
+
+
+def test_flagged_sync_endpoint_returns_versioned_payload(client):
+    resp = client.get("/numbers/flagged/sync")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["version"]
+    assert body["count"] == len(body["numbers"])
+    assert body["unchanged"] is False
+    # The seeded store has one number past the public-flag threshold (0771234567, 3 reports).
+    assert "0771234567" in {n["msisdn"] for n in body["numbers"]}
+
+
+def test_flagged_sync_endpoint_honours_known_version(client):
+    version = client.get("/numbers/flagged/sync").json()["version"]
+    resp = client.get("/numbers/flagged/sync", params={"known_version": version})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["unchanged"] is True
+    assert body["numbers"] == []
+
+
+def test_flagged_sync_route_is_not_shadowed_by_number_lookup(client):
+    # /numbers/{msisdn} is declared in the same router; make sure "flagged" is
+    # not being swallowed as an MSISDN (which would 422).
+    assert client.get("/numbers/flagged/sync").status_code == 200

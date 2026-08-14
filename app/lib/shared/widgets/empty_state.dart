@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// A reusable "nothing to show yet" / error placeholder.
 ///
-/// Used for: the initial check-message state, no lookup performed yet, an
+/// Used for: the initial check-anything state, no lookup performed yet, an
 /// empty feed, no file selected in the sentinel screen, and network-error
 /// fallbacks — so every screen renders empty/error states the same way
 /// instead of ad-hoc `Text('No data')` widgets scattered around.

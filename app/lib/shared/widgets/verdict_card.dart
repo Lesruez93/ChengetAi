@@ -8,7 +8,7 @@ import 'risk_chip.dart';
 /// inline highlight of risky phrases within the original message, a
 /// plain-language explanation, and which classifier strategy produced it.
 ///
-/// This is the visual centerpiece of the check-message flow, so it carries
+/// It renders the message-wording section of the analyze flow, so it carries
 /// more layout/paint logic than a typical shared widget; it's still a pure
 /// presentation component (all data comes in via constructor) so it stays
 /// reusable and easy to reason about.
