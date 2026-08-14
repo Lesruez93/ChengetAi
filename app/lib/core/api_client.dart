@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import 'constants.dart';
+import 'models/analyze_models.dart';
 import 'models/classify_models.dart';
 import 'models/feed_models.dart';
 import 'models/protection_models.dart';
@@ -101,6 +102,20 @@ class ApiClient {
         if (strategy != null) 'strategy': strategy,
       },
       ClassifyResponse.fromJson,
+    );
+  }
+
+  /// `POST /analyze` — check a mixed paste: message text, links, phone numbers,
+  /// or any combination. Wraps [classify] and adds link and number checks,
+  /// returning one verdict plus the per-entity findings behind it.
+  Future<AnalyzeResponse> analyze(String text, {String? strategy}) {
+    return _post(
+      '/analyze',
+      <String, dynamic>{
+        'text': text,
+        if (strategy != null) 'strategy': strategy,
+      },
+      AnalyzeResponse.fromJson,
     );
   }
 

@@ -9,7 +9,7 @@
           ▼                       ▼                          ▼                    ▼
    ┌──────────────────────────────────────┐   ┌───────────────────────────────────────┐
    │            Flutter app                │   │           Next.js web app (web/)        │
-   │  check_message / lookup / feed         │   │  /        → marketing landing page       │
+   │  analyze / lookup / protect / feed     │   │  /        → marketing landing page       │
    │  (+hotspot map) / sentinel / auth /home│   │  /admin/* → password-gated dashboard:     │
    │                                        │   │  overview, reports, numbers, sentinel jobs│
    └──────────────────┬─────────────────────┘   └──────────────────┬────────────────────────┘
@@ -25,6 +25,8 @@
                          │   ├─ classifier.py            │
                          │   │   ├─ BaselineClassifier    │  TF-IDF + LogisticRegression
                          │   │   └─ LLMClassifier         │  Anthropic API, few-shot prompt
+                         │   ├─ analyze.py                │  entity split + worst-of combination
+                         │   ├─ entities.py / link_check  │  URL + MSISDN extraction, URL heuristics
                          │   ├─ reputation.py             │  reports, trust weighting, abuse controls
                          │   ├─ feed.py                   │  weighted-rules trending + hotspots
                          │   ├─ sentinel.py               │  IsolationForest + rules hybrid
@@ -98,6 +100,75 @@ reaching for a model where simpler logic would do.
   `reports` table the reputation system uses. The response body says so
   explicitly (`method_note` field) so this is never mistaken for an AI
   output in the UI or in review.
+
+## Live call & SMS screening
+
+Incoming calls and messages are screened on the handset (Android only), so the
+app answers "is this number reported?" without the user having to type anything
+into the lookup screen.
+
+**How it fits together**
+
+```
+  GET /numbers/flagged/sync ──► ProtectionStore (native SharedPreferences)
+   (publicly-flagged set,              │
+    content-hash versioned)            ├──► ScamCallScreeningService  (incoming call)
+                                       └──► SmsScamReceiver           (incoming SMS)
+```
+
+**Matching is local, never a per-call API request.** Asking the backend "who is
+calling me?" on every ring would hand the server a live log of each user's
+contacts and call times — a surveillance dataset the project has no need for and
+`docs/risk_compliance_checklist.md` commits to avoiding. Instead the flagged set
+is pulled down in bulk and matched on the device. The blocklist download is the
+only network traffic the feature generates, and it carries no information about
+the user.
+
+**Only publicly-flagged numbers sync.** A number in this payload produces an
+automatic accusation on screen during a live call, with nobody reviewing it
+first. `NUMBER_PUBLIC_FLAG_THRESHOLD` therefore matters more here than anywhere
+else in the app, and the sync endpoint applies it rather than shipping every
+number with a single report against it.
+
+**Permissions are deliberately minimal.** Call screening uses the platform
+`CallScreeningService` behind `ROLE_CALL_SCREENING`, which needs no permission
+at all — the app never requests `READ_CALL_LOG` or `READ_PHONE_STATE`. SMS
+screening uses `RECEIVE_SMS` only; `READ_SMS` is not requested, so the existing
+inbox is never read. The app is not the default SMS handler and never hides,
+alters, or replies to a message.
+
+**SMS bodies stay on the device.** The message text is scanned against a short
+local phrase list (`SmsHeuristics`), not sent to `/classify` — auto-uploading
+every incoming message would turn a scam warning into message interception. The
+trade is real: the local list is weaker than the trained classifier and will miss
+novel phrasing, which the Protection screen states plainly, with the manual
+"check this message" path as the fallback.
+
+**Known gaps.** There is no background sync service; the blocklist refreshes when
+the app is opened, and the Protection screen shows its age with a warning past a
+day. iOS cannot implement this: it exposes no incoming-SMS API, and its
+`CallDirectory` extension only matches against a pre-loaded list with no
+callback, so no per-call explanation is possible.
+
+## Universal analyzer
+
+`POST /analyze` accepts an arbitrary paste — message text, links, phone numbers,
+or all three — rather than requiring the user to decide which endpoint their
+content belongs to. `services/entities.py` splits the text, each part goes to the
+checker that can judge it (classifier / reputation store / URL heuristics), and
+the verdict is the **worst** finding, not an average: bland wording carrying a
+link to a lookalike banking domain is a phishing attempt, and averaging would
+report it as fine.
+
+Link assessment (`services/link_check.py`) judges the address only — nothing
+fetches the URL. Resolving attacker-supplied addresses would make the backend an
+SSRF vector against internal hosts and a way to have our server register clicks
+on someone else's phishing page. Consequently a clean-looking address returns
+`unknown`, kept distinct from `low`, and the UI never presents it as "safe".
+
+Rules rather than a model, for the same reason as `reputation.py`: each signal
+must be explainable in one sentence, and brand-impersonation detection is
+exact-match logic over a list of Zimbabwean institutions, not a learned boundary.
 
 ## Offline behaviour
 

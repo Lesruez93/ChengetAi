@@ -5,7 +5,7 @@ import '../../core/constants.dart';
 import '../../core/models/reputation_models.dart';
 
 /// A modal bottom sheet form for `POST /reports`, opened from both the
-/// check-message screen ("Report this number") and the lookup screen. Kept
+/// analyze screen ("Report this number") and the lookup screen. Kept
 /// as a single shared widget so the report UX (fields, validation, status
 /// handling) never drifts between the two entry points.
 class ReportSheet extends StatefulWidget {

@@ -30,6 +30,45 @@ Classify a message as scam, suspicious, or safe.
 
 ---
 
+## `POST /analyze`
+
+Check an arbitrary paste — message text, links, phone numbers, or any mix. Splits the text into entities, routes each to the checker that can judge it, and returns the **worst** finding as the overall verdict alongside the evidence.
+
+**Request**
+```json
+{ "text": "Your account is blocked. Verify at http://secure-ecocash.co.zw.login.tk/verify or call 0771234567" }
+```
+`strategy` is optional and behaves exactly as on `POST /classify`. `text` accepts up to 8000 characters (longer than `/classify`, since pasted content is often a whole forwarded thread); only the first 4000 are passed to the classifier, while links and numbers are extracted from the whole text.
+
+**Response `200`**
+```json
+{
+  "verdict": "scam",
+  "confidence": 0.85,
+  "summary": "0771234567 has been reported 3 times by the community. The link to secure-ecocash.co.zw.login.tk looks unsafe. Do not send money, share an OTP, or tap any link in this.",
+  "message": { "verdict": "suspicious", "confidence": 0.61, "risk_phrases": [], "explanation": "...", "matched_category": null, "strategy_used": "baseline" },
+  "links": [
+    {
+      "url": "http://secure-ecocash.co.zw.login.tk/verify",
+      "host": "secure-ecocash.co.zw.login.tk",
+      "risk_level": "high",
+      "reasons": ["Uses the ecocash name but is not the real ecocash.co.zw website.", "..."]
+    }
+  ],
+  "numbers": [
+    { "msisdn": "0771234567", "risk_level": "medium", "report_count": 3, "is_publicly_flagged": true, "top_category": "ecocash_reversal" }
+  ],
+  "unrecognized_numbers": [],
+  "method_note": "Message wording is judged by the scam classifier; phone numbers by community reports; links by the shape of the web address only..."
+}
+```
+
+`message` is `null` when the paste has fewer than 4 words (a bare link or number), since the classifier is trained on sentences. `unrecognized_numbers` holds phone-like text that is not a Zimbabwean mobile number and so could not be looked up — reported rather than dropped, because "cannot check" is not "fine".
+
+Link `risk_level` is `unknown | low | medium | high`. **`unknown` means "nothing wrong with the address", not "safe"** — no URL is ever fetched (see `docs/architecture.md` → "Universal analyzer"). `422` on empty text.
+
+---
+
 ## `GET /numbers/{msisdn}`
 
 Look up a phone number's reputation. `msisdn` accepts local (`0771234567`) or international (`+263771234567`) formats.
@@ -54,6 +93,30 @@ Look up a phone number's reputation. `msisdn` accepts local (`0771234567`) or in
 All numbers with at least one report, ranked by report count descending. Used by the admin dashboard's flagged-number review queue.
 
 **Response `200`**: array of the same shape as `GET /numbers/{msisdn}`.
+
+---
+
+## `GET /numbers/flagged/sync?known_version=`
+
+Bulk download of publicly-flagged numbers, for the Android app's on-device call/SMS screening. Only numbers past `NUMBER_PUBLIC_FLAG_THRESHOLD` are included.
+
+Pass the `known_version` currently held by the client. If the server's set still hashes to that value it replies with `unchanged: true` and an empty `numbers` array, keeping a routine sync to a few hundred bytes on a metered connection.
+
+**Response `200`**
+```json
+{
+  "version": "3f9a1c07b2d84e6a",
+  "generated_at": "2026-08-14T09:00:00Z",
+  "count": 1,
+  "unchanged": false,
+  "numbers": [
+    { "msisdn": "0771234567", "risk_level": "medium", "report_count": 3, "top_category": "ecocash_reversal" }
+  ],
+  "method_note": "Crowd-sourced community reports aggregated by weighted rules, not an AI model..."
+}
+```
+
+`count` always reports the true set size, including when `unchanged` is true. Screening matches on the handset against this copy; the app never sends an incoming number to the API.
 
 ---
 
