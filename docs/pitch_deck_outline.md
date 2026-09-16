@@ -13,7 +13,7 @@ architecture, deployment and impact. This is the content plan, not the deck itse
 - **The same script crosses borders**: "reverse this wrong deposit" runs identically on EcoCash,
   M-PESA, MTN MoMo, Airtel Money and OPay, faster than any one country's warnings travel
 - Four structural gaps:
-  1. generic filters miss code-switched Shona / Swahili / Pidgin / isiZulu text
+  1. generic filters, trained on Western corpora, miss local wallet terminology entirely
   2. reporting goes nowhere — people are told to "report it", not to whom or how fast
   3. reporting costs safety — demanding an identity silences those most at risk of retaliation
   4. no shared citizen scam-number database, least of all across a border
@@ -46,6 +46,7 @@ architecture, deployment and impact. This is the content plan, not the deck itse
 - FastAPI backend, 72 passing automated tests, seeded Postgres schema with RLS
 - Seven markets live behind one country registry — adding one is a two-file data change
 - Synthetic, fully-disclosed training data (647 labeled messages across 7 markets, 200 transactions)
+- Scope stated up front: English-only, and we say what that costs rather than implying coverage
 - Flutter Android-first MVP app
 - Deployed landing page: [chengetai.vercel.app](https://chengetai.vercel.app)
 - Version-pinned dependencies and CI (pytest + web build/lint) on every push
@@ -68,6 +69,7 @@ architecture, deployment and impact. This is the content plan, not the deck itse
 - Abuse-resistant reputation: rate limiting, duplicate collapse, public-flag threshold
 - Seven overlapping data-protection regimes; we target their common floor and name the
   per-jurisdiction audit as *not done*
+- English-only reach limitation named as the product's largest coverage gap, not buried
 - See `docs/risk_compliance_checklist.md` and `docs/dataset_statement.md`
 
 ## Slide 10 — Team
@@ -82,3 +84,4 @@ architecture, deployment and impact. This is the content plan, not the deck itse
   already made
 - Ask: a pilot partner introduction in one launch market (agent network or telco district),
   help verifying national support-desk contacts, and mentorship on the dispute/human-review flow
+  and on what non-English coverage would actually require

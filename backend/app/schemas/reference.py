@@ -11,7 +11,6 @@ class CountryResponse(BaseModel):
     region_label: str
     regions: list[str]
     providers: list[str]
-    languages: list[str]
     currency_code: str
     currency_symbol: str
     example_msisdn: str

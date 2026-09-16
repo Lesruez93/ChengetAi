@@ -112,8 +112,8 @@ class ApiClient {
   /// `POST /classify` — classify a pasted/shared message as scam, suspicious
   /// or safe. `strategy` overrides the backend's default classifier; leave
   /// null to use whatever `CLASSIFIER_STRATEGY` the server is configured with.
-  /// `country` grounds the verdict in the right wallets, currency and
-  /// languages; omit it and the backend falls back to its DEFAULT_COUNTRY.
+  /// `country` grounds the verdict in the right wallets and currency; omit it
+  /// and the backend falls back to its DEFAULT_COUNTRY.
   Future<ClassifyResponse> classify(String text, {String? country, String? strategy}) {
     return _post(
       '/classify',

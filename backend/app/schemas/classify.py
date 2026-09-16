@@ -10,7 +10,7 @@ class ClassifyRequest(BaseModel):
     country: str | None = Field(
         default=None,
         description="ISO 3166-1 alpha-2 code. Grounds the classifier in the right "
-                    "wallets, currency and languages; falls back to DEFAULT_COUNTRY.",
+                    "wallets and currency; falls back to DEFAULT_COUNTRY.",
     )
     strategy: Literal["baseline", "llm"] | None = Field(
         default=None, description="Override the default classifier strategy for this request."

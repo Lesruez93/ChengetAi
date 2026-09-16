@@ -20,7 +20,7 @@ def _to_response(country) -> CountryResponse:
     return CountryResponse(
         code=country.code, name=country.name, dial_code=country.dial_code,
         region_label=country.region_label, regions=list(country.regions),
-        providers=list(country.providers), languages=list(country.languages),
+        providers=list(country.providers),
         currency_code=country.currency_code, currency_symbol=country.currency_symbol,
         example_msisdn=country.example_msisdn,
     )

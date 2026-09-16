@@ -94,7 +94,6 @@ export interface Country {
   region_label: string;
   regions: string[];
   providers: string[];
-  languages: string[];
   currency_code: string;
   currency_symbol: string;
   example_msisdn: string;

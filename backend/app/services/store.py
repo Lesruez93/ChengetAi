@@ -65,7 +65,7 @@ class InMemoryStore:
                    region="Harare", message_excerpt="Confirmed. You have received [redacted]...",
                    reporter_trust=1.0, created_at=now - timedelta(hours=6)),
             Report(msisdn="+263771234567", country="ZW", category="mobile_money_reversal",
-                   region="Harare", message_excerpt="Ndakutumira mari neaccident...",
+                   region="Harare", message_excerpt="I sent money to your number by accident...",
                    reporter_trust=1.0, created_at=now - timedelta(hours=2)),
             Report(msisdn="+263782345678", country="ZW", category="fake_job", region="Bulawayo",
                    message_excerpt="Congratulations! Shortlisted for remote job...",
@@ -75,7 +75,7 @@ class InMemoryStore:
                    created_at=now - timedelta(hours=20)),
             # Kenya — M-PESA reversal and a SIM swap wave
             Report(msisdn="+254712345678", country="KE", category="mobile_money_reversal",
-                   region="Nairobi", message_excerpt="Nimekutumia pesa kwa bahati mbaya, nirudishie",
+                   region="Nairobi", message_excerpt="I sent you money by mistake, please send it back",
                    reporter_trust=1.3, created_at=now - timedelta(hours=4)),
             Report(msisdn="+254712345678", country="KE", category="mobile_money_reversal",
                    region="Nairobi", message_excerpt="Please return the M-PESA sent in error",

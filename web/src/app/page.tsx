@@ -32,7 +32,7 @@ const PROBLEMS = [
 const FEATURES = [
   {
     title: "Check Message",
-    body: "Paste or share any SMS/WhatsApp message. An AI classifier verdicts it scam, suspicious, or safe — grounded in your market’s wallets, currency and languages — with highlighted risk phrases and a plain-language explanation.",
+    body: "Paste or share any SMS/WhatsApp message. An AI classifier verdicts it scam, suspicious, or safe — grounded in your market’s own wallets and currency — with highlighted risk phrases and a plain-language explanation.",
   },
   {
     title: "Get Help",
@@ -107,7 +107,7 @@ export default async function LandingPage() {
               message, report the number behind it without putting themselves at risk, and reach
               the right help fast. Covering Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana
               and Tanzania — one shared scam database, grounded in each market&apos;s own wallets
-              and languages.
+              and currency.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -137,11 +137,10 @@ export default async function LandingPage() {
           </p>
           <p className="mt-4 max-w-3xl text-neutral">
             Losses hit the poorest hardest and erode trust in digital finance exactly where
-            financial inclusion is deepening fastest. Generic spam filters, trained on
-            English-language Western corpora, miss code-switched Shona, Swahili, Pidgin and isiZulu
-            text and every local wallet&apos;s terminology. And detection alone is not protection:
-            a verdict that does not tell you who to call, in what order, leaves the user exactly
-            where it found them.
+            financial inclusion is deepening fastest. Generic spam filters, trained on Western scam
+            corpora, miss every local wallet&apos;s terminology and the scripts built around it.
+            And detection alone is not protection: a verdict that does not tell you who to call,
+            in what order, leaves the user exactly where it found them.
           </p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {PROBLEMS.map((p) => (
@@ -222,7 +221,7 @@ export default async function LandingPage() {
                   <li>
                     <span className="font-medium text-foreground">Message classification</span> — a
                     TF-IDF/logistic-regression baseline and a pluggable Anthropic LLM strategy, because
-                    scam text is adversarial, code-switched, and constantly mutating.
+                    scam text is adversarial and constantly mutating.
                   </li>
                   <li>
                     <span className="font-medium text-foreground">Agent Fraud Sentinel</span> — an

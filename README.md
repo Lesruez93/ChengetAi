@@ -29,9 +29,11 @@ inclusion is deepening fastest. Four things make it worse than it needs to be:
 MoMo, Airtel Money and OPay. A number burned in Lagos works fine in Accra the
 next day, because nothing connects the two.
 
-**2. Generic filters don't speak the language.** Spam filters trained on
-English-language Western corpora miss code-switched Shona, Swahili, Nigerian
-Pidgin and isiZulu, and every local wallet's terminology, entirely.
+**2. Generic filters don't know the local scripts.** Spam filters trained on
+Western corpora miss every local wallet's terminology and the scam scripts
+built around it — "reverse the wrong deposit", the agent-till pretext, the
+grant-release fee — because none of them look like the phishing those filters
+were trained on.
 
 **3. Reporting goes nowhere.** People are told to "report it" — but not to
 whom, in what order, or how fast. By the time someone finds the right desk, the
@@ -73,7 +75,7 @@ in digital payments.
 
 | Module | What it does |
 |---|---|
-| **Check Message** | Paste or share a message; an AI classifier verdicts it scam / suspicious / safe, grounded in your market's wallets, currency and languages, with a plain-language explanation and highlighted risk phrases. |
+| **Check Message** | Paste or share a message; an AI classifier verdicts it scam / suspicious / safe, grounded in your market's own wallets and currency, with a plain-language explanation and highlighted risk phrases. |
 | **Get Help** | The ordered "what do I do now" ladder for your country — immediate steps first, then wallet provider, regulator, police, support lines. Reachable on its own tab, not only after a verdict. |
 | **Report** | Report a number anonymously or with a random on-device id. Excerpt redaction at intake; country and region pickers that use each market's own vocabulary. |
 | **Number Lookup** | Search a number for a community-sourced reputation: report count, categories, risk level, and **which countries it has been reported from**. Cross-border reach escalates risk on its own. |
@@ -87,9 +89,12 @@ in digital payments.
 
 Almost every "local" detail differs between markets: dial code and number
 format, which wallets people use, what the first-level administrative unit is
-called, which languages messages arrive in, and which desk you call after a
-loss. All of it lives in **one registry** (`backend/app/services/countries.py`)
-plus **one support-channel table** (`backend/app/services/support.py`).
+called, what currency amounts appear in, and which desk you call after a loss.
+All of it lives in **one registry** (`backend/app/services/countries.py`) plus
+**one support-channel table** (`backend/app/services/support.py`).
+
+Language is the exception: the product is **English-only** (see Known
+limitations).
 
 **Adding a market is a data change in two files.** No service logic, no client
 release, no new model.
@@ -222,10 +227,11 @@ safely → reach help**.
 
 1. **Check Message (detect, in two markets).** Paste an EcoCash "wrong deposit"
    message with the country set to Zimbabwe → `scam` verdict with highlighted
-   risk phrases. Now switch the country picker to Kenya and paste the Swahili
-   M-PESA equivalent (`Nimekutumia pesa kwa bahati mbaya... nirudishie`) → same
-   verdict, same mechanism, different grounding. *This is the point of the
-   multi-market corpus: the model keys on the trick, not the wallet's name.*
+   risk phrases. Now switch the country picker to Kenya and paste the M-PESA
+   equivalent (`M-PESA Alert: KSh5,000 was sent to your wallet in error...
+   please reverse to 0722113344`) → same verdict, same mechanism, different
+   grounding. *This is the point of the multi-market corpus: the model keys on
+   the trick, not the wallet's name.*
 2. **Get Help (reach help).** Tap *See who to contact* on the verdict → the
    ordered ladder for that country. Note the unverified contacts are labelled
    as unverified rather than hidden.
@@ -248,9 +254,8 @@ safely → reach help**.
 
 **AI is used for:**
 
-- **Message classification** — scam text is adversarial, code-switched, and
-  constantly mutating; a keyword blocklist catches yesterday's scripts, not
-  tomorrow's. The repo ships both a trained baseline and an LLM strategy
+- **Message classification** — scam text is adversarial and constantly
+  mutating; a keyword blocklist catches yesterday's scripts, not tomorrow's. The repo ships both a trained baseline and an LLM strategy
   specifically so this trade-off is demonstrable rather than asserted.
 - **Sentinel anomaly detection** — agent fraud patterns are unlabeled and drift
   over time, which is exactly what unsupervised learning (IsolationForest) is
@@ -277,10 +282,13 @@ safely → reach help**.
   organisation, but only long-standing national short codes are marked
   `verified`. The API and UI both surface the distinction. Verifying a market's
   contacts is a blocking prerequisite for piloting there.
-- **Language coverage is uneven.** Row counts are even across markets, but the
-  corpus is richest in Shona and Swahili and thinnest in Luganda, Pidgin and the
-  South African languages, so per-market accuracy will not be uniform. The UI
-  itself is **English-only** in every market.
+- **The product is English-only, end to end** — interface, training corpus,
+  classifier prompt and explanations. A message in another language is still
+  scored, but not reliably, and the LLM strategy is instructed to say so and
+  lower its confidence rather than guess. This is the largest coverage gap in
+  the product: across these markets, the people most exposed to mobile-money
+  fraud overlap heavily with those least likely to read English comfortably.
+  `docs/accessibility.md` states what it costs and what fixing it would take.
 - **No per-jurisdiction data-protection review** has been done for any of the
   seven markets; the design targets their common floor (`docs/dataset_statement.md`).
 - The support pathway requires connectivity — the most important offline gap,

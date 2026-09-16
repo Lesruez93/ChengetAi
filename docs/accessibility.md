@@ -50,21 +50,28 @@ Risk/verdict states (`AppColors.forVerdict`, `AppColors.forHotspotLevel`, `AppCo
 
 ## Language considerations
 
-The product's core accessibility consideration is linguistic, not visual: this is precisely the gap
-generic English-only tools leave across the region.
+**ChengetAI is English-only, end to end.** The interface, the training corpus, the classifier
+prompt, the support pathways and the explanations are all English. This is a deliberate scope
+boundary for the MVP, and it is the product's single largest accessibility gap — stated plainly
+here rather than softened.
 
-- The training corpus and the LLM prompt handle code-switched text in **English, Shona, Swahili,
-  Luganda and Nigerian Pidgin** (`docs/dataset_statement.md`). The LLM prompt is grounded per
-  market, so a Kenyan user's explanation names M-PESA and a Nigerian user's names their own bank.
-- **The interface itself is still English-only.** Understanding a *scam message* in Shona or Swahili
-  is not the same as being able to *use the app* in it, and only the first is implemented. Full UI
-  localisation is roadmap, not done.
-- Language coverage is uneven in a way the market list hides: the corpus is richest for Shona and
-  Swahili and thinnest for Luganda, Pidgin and the South African languages. isiZulu, isiXhosa,
-  Afrikaans, Twi, Ga, Ewe, Hausa, Yoruba and Igbo are named in the country registry as languages
-  messages plausibly arrive in, but are **not** yet represented in the training corpus.
-- Additional language coverage is an explicit roadmap item ("Institutionalization" phase, Month
-  7–12) — disclosed as a known gap, not claimed as done.
+What that means concretely:
+
+- A message written in Shona, Swahili, Nigerian Pidgin or isiZulu **will still be scored**, because
+  the classifier accepts any text. But it will not be scored *reliably*, because neither the corpus
+  nor the prompt covers those languages. The LLM prompt is instructed to say so in its explanation
+  and lower its confidence rather than guess, so an unreliable verdict is at least an honest one.
+- Everything else about a verdict *is* localised: the wallets named, the currency, the scam
+  patterns, and the support contacts. A Kenyan user's explanation names M-PESA and a Nigerian
+  user's names their own bank. Localisation here is about **market**, not language.
+- What English-only costs: across these markets, the people most exposed to mobile-money fraud
+  include those least likely to read English comfortably — older adults, rural users, and
+  first-time smartphone owners. An English-only scam tool is least available to the people it would
+  help most. We are not claiming otherwise.
+
+Language coverage is a roadmap item, and a genuine one rather than a placeholder: it needs a corpus
+per language, native-speaker review of explanations, and UI localisation — not a translation pass.
+The order it would happen in is corpus first (so verdicts are correct), then explanations, then UI.
 
 ## Known gaps (disclosed)
 
@@ -73,5 +80,5 @@ generic English-only tools leave across the region.
    theme colors, not machine-verified against rendered output.
 2. No screen-reader (TalkBack/VoiceOver) pass has been performed on the Flutter app.
 3. Web app has not been tested at the 320px mobile breakpoint specifically.
-4. UI localisation is not implemented — the interface is English-only in every market (see above).
-5. The training corpus covers only some of the languages the country registry names (see above).
+4. **The product is English-only in every market** — interface, corpus, prompt and explanations
+   (see "Language considerations" above). This is the largest accessibility gap in the product.

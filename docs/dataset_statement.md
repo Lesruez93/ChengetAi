@@ -15,9 +15,10 @@ collected. Every phone number appearing in them is generated, not observed.
   loans/grants/relief aid, SIM swap, OTP and identity phishing (BVN in Nigeria,
   ID numbers elsewhere), institutional impersonation, and faith-based "seed"
   requests — alongside legitimate wallet notices, bank alerts and everyday
-  family/business texts. Templates mix English with Shona, Swahili, Luganda and
-  Nigerian Pidgin the way real local messages do, since that code-switching is
-  exactly what generic filters miss.
+  family/business texts. **All messages are in English**, matching the
+  product's scope (`docs/accessibility.md`); per-market variation comes from
+  wallets, banks, employers, names, towns, currency and register rather than
+  from language.
 - **Why multi-country**: a corpus drawn from one market teaches the model that
   the local wallet's *name* is the scam signal — the same overfit that makes
   imported spam filters useless here, reappearing one country over. Mixing
@@ -38,15 +39,17 @@ collected. Every phone number appearing in them is generated, not observed.
   a market other than the one the example was written for.
 - **Known limitations**: template-generated text is less lexically diverse than
   real scam messages and cannot capture patterns absent from our template set.
-  Coverage is also uneven in a way the even row counts hide: the local-language
-  lines are richest for Shona and Swahili and thinnest for Luganda and the South
-  African languages, so per-market accuracy will not be uniform even though
-  per-market volume is. It is a starting point for the baseline model and the
-  LLM few-shot prompt, not a claim of comprehensive coverage.
+  It is English-only, so the model has no coverage of the Shona, Swahili, Pidgin
+  or isiZulu messages a real inbox in these markets also receives — the largest
+  single gap in the dataset, recorded in `docs/accessibility.md`. It is a
+  starting point for the baseline model and the LLM few-shot prompt, not a claim
+  of comprehensive coverage.
 - **Roadmap**: replace/augment with real, consented, anonymized reports
   collected via the in-app report flow (already redacted at intake, see below),
   plus partnerships with telcos, national cybercrime units and banks in each
-  market for validated scam samples.
+  market for validated scam samples. Non-English coverage would start here too:
+  a corpus per language is the prerequisite for a correct verdict in it, and no
+  amount of prompt translation substitutes for one.
 
 ## `sample_data/transactions_sample.csv` — mobile-money agent transaction log
 

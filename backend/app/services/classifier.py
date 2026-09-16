@@ -5,9 +5,14 @@
   feature weights — but only as good as its (synthetic, small) training corpus
   and blind to scam patterns it has never seen.
 - `LLMClassifier`: Anthropic API with a few-shot prompt grounded in the
-  caller's market. Handles novel phrasing, code-switching between English and
-  Shona / Swahili / Pidgin / isiZulu, and reasoning about intent rather than
-  surface keywords, at the cost of a network call and per-request $.
+  caller's market. Handles novel phrasing and reasoning about intent rather
+  than surface keywords, at the cost of a network call and per-request $.
+
+The product classifies **English-language messages only**. That is a real
+coverage limit, not a claim that scams arrive in English: messages in Shona,
+Swahili, Pidgin or isiZulu will be scored, but not reliably, since neither the
+corpus nor the prompt covers them. docs/accessibility.md records this as an
+open gap.
 
 Both strategies implement `classify(text, country) -> ClassifyResponse` so
 routers and tests can swap them without caring which one is active.
@@ -18,10 +23,10 @@ One classifier serves every market, because the *mechanism* of a scam
 generalises even when its vocabulary does not: "reverse this deposit you did
 not receive" is the same attack in Harare and Lagos, and a model trained on
 all seven markets sees far more examples of it than seven per-country models
-would. What is localised is the *grounding* — which wallets, currency and
-languages the prompt names, and which words the risk-phrase highlighter
-recognises. That keeps a single quality bar while still letting a Kenyan user
-see "M-PESA" in the explanation rather than "EcoCash".
+would. What is localised is the *grounding* — which wallets and currency the prompt
+names, and which words the risk-phrase highlighter recognises. That keeps a
+single quality bar while still letting a Kenyan user see "M-PESA" in the
+explanation rather than "EcoCash".
 """
 
 from __future__ import annotations
@@ -55,10 +60,8 @@ SCAM_KEYWORD_REASONS: dict[str, str] = {
     "wrong deposit": "'Wrong deposit' is a common pretext to lure you into sending back real money.",
     "sent in error": "A claimed error transfer is a standard setup for a reversal scam.",
     "by mistake": "A claimed mistaken transfer is a standard setup for a reversal scam.",
-    "kudzorera": "Shona for 'to return' money — wrong-deposit reversal script.",
-    "tidzorerwe": "Shona for 'so we can be refunded' — wrong-deposit reversal script.",
-    "rudisha": "Swahili for 'return it' — wrong-deposit reversal script.",
-    "nirudishie": "Swahili for 'send it back to me' — wrong-deposit reversal script.",
+    "send it back": "Asks you to return money for a transfer you never actually received.",
+    "refund": "Unsolicited refund requests are a standard reversal-scam setup.",
     # Upfront fees
     "registration fee": "Upfront fee requests are a hallmark of fake job and loan scams.",
     "processing fee": "Upfront fee requests are a hallmark of fake job and loan scams.",
@@ -236,8 +239,11 @@ WhatsApp messages and decide whether they are a scam, suspicious, or safe.
 You are currently reviewing a message for a user in {country_name}. Ground your judgement in \
 that market:
 - Mobile money platforms in everyday use there: {providers}
-- Messages may arrive in any of: {languages}, often code-switched within a single message
 - Local currency: {currency_code} ({currency_symbol})
+
+Messages are in English. If a message is substantially in another language, say so in the \
+explanation and lower your confidence rather than guessing — an unreliable verdict delivered \
+confidently is worse than an honest "I could not read this".
 
 Scam patterns that recur across African mobile-money markets, and that you are tuned to catch:
 - Wrong-deposit / reversal scams: a fake or reversible deposit notice, then pressure to send \
@@ -264,32 +270,32 @@ The explanation must be 1-3 plain-language sentences a non-technical user can un
 the platform the message is impersonating when you can, and never assume the user is in a country \
 other than {country_name}."""
 
-# Few-shot examples span markets and languages on purpose: a single-country set
-# teaches the model that the local wallet name is itself the signal, which is
-# exactly the overfit that broke generic spam filters for this region in the
-# first place. The safe example is deliberately an OTP delivery, the single
-# most common false positive in this domain.
+# Few-shot examples span markets on purpose: a single-country set teaches the
+# model that the local wallet's name is itself the signal, which is exactly the
+# overfit that broke generic spam filters for this region in the first place.
+# The safe example is deliberately an OTP delivery, the single most common false
+# positive in this domain.
 FEW_SHOT_EXAMPLES = [
     {
-        "text": "Confirmed. You have received $80 from Tendai. Ref:AB12CD34EF. Kana yakanga isiri "
-                "yako pindura kuti tidzorerwe (mistake transfer) tinokutumira number yekudzorera mari.",
+        "text": "Confirmed. You have received $80 from Tendai. Ref:AB12CD34EF. This was sent to "
+                "you in error, please reverse the money to 0771234567 and we will not report it.",
         "response": {
             "verdict": "scam", "confidence": 0.95, "matched_category": "mobile_money_reversal",
-            "risk_phrases": [{"phrase": "tidzorerwe (mistake transfer)",
+            "risk_phrases": [{"phrase": "reverse the money",
                                "reason": "Classic wrong-deposit reversal script."}],
             "explanation": "This is the wrong-deposit scam: a fake or reversible deposit notice "
                             "pressures you to send real money back to a stranger.",
         },
     },
     {
-        "text": "Habari, nimekutumia KSh 5,000 kwa bahati mbaya kwenye M-PESA yako badala ya "
-                "supplier wangu. Tafadhali nirudishie kwa 0712345678, ni ya matibabu ya mtoto.",
+        "text": "Hello, I sent KSh 5,000 to your M-PESA by mistake instead of my supplier. Please "
+                "send it back to 0712345678, it is for my child's hospital bill.",
         "response": {
             "verdict": "scam", "confidence": 0.93, "matched_category": "mobile_money_reversal",
-            "risk_phrases": [{"phrase": "nirudishie",
-                               "reason": "Asks you to send money back for a transfer you never received."}],
-            "explanation": "This is the wrong-deposit scam in Swahili. Check your real M-PESA "
-                            "balance in the app before believing any deposit arrived.",
+            "risk_phrases": [{"phrase": "send it back",
+                               "reason": "Asks you to return money for a transfer you never received."}],
+            "explanation": "This is the wrong-deposit scam. Check your real M-PESA balance in the "
+                            "app before believing any deposit arrived.",
         },
     },
     {
@@ -337,7 +343,6 @@ class LLMClassifier:
         return LLM_SYSTEM_TEMPLATE.format(
             country_name=country.name,
             providers=", ".join(country.providers),
-            languages=", ".join(country.languages),
             currency_code=country.currency_code,
             currency_symbol=country.currency_symbol,
             category_keys=", ".join(SCAM_CATEGORY_KEYS),

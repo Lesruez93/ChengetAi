@@ -51,9 +51,9 @@ class _CheckMessageScreenState extends State<CheckMessageScreen> {
     });
 
     try {
-      // The selected market decides which wallets, currency and languages the
-      // classifier assumes — a Kenyan user should see "M-PESA" in the
-      // explanation, not "EcoCash".
+      // The selected market decides which wallets and currency the classifier
+      // assumes — a Kenyan user should see "M-PESA" in the explanation, not
+      // "EcoCash".
       final ClassifyResponse response =
           await widget.apiClient.classify(text, country: CountryPreference.code);
       setState(() => _result = response);

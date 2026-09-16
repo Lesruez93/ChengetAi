@@ -4,8 +4,8 @@ from app.services.classifier import BaselineClassifier, _find_risk_phrases, get_
 def test_baseline_flags_reversal_scam():
     clf = BaselineClassifier()
     result = clf.classify(
-        "Confirmed. You have received $80 from Rue. Ref:AB12CD34EF. Kana yakanga isiri yako "
-        "pindura kuti tidzorerwe (mistake transfer) tinokutumira number yekudzorera mari.",
+        "Confirmed. You have received $80 from Rue. Ref:AB12CD34EF. This was sent to you in "
+        "error, please reverse the money to 0771234567 immediately.",
         "ZW",
     )
     assert result.verdict in {"scam", "suspicious"}
@@ -24,6 +24,24 @@ def test_baseline_flags_the_same_scam_in_another_market():
     )
     assert result.verdict in {"scam", "suspicious"}
     assert result.country == "KE"
+
+
+def test_corpus_is_english_only():
+    """The product classifies English only, so training on other languages would
+    teach the model text no other part of the system can handle."""
+    import json
+
+    from app.services.classifier import CORPUS_PATH
+
+    with open(CORPUS_PATH, encoding="utf-8") as f:
+        rows = [json.loads(line) for line in f if line.strip()]
+    assert rows, "corpus is empty — run sample_data/generate_scam_corpus.py"
+
+    # Latin-1 plus the currency symbols and punctuation the templates use.
+    allowed_extra = set("₦₵—…")
+    for row in rows:
+        offenders = {c for c in row["text"] if ord(c) > 0x24F and c not in allowed_extra}
+        assert not offenders, f"non-English characters {offenders} in: {row['text'][:60]}"
 
 
 def test_baseline_treats_bank_notice_as_safe():

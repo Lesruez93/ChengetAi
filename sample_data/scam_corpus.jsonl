@@ -270,7 +270,7 @@
 {"text": "GCB Bank ALERT: Your ID number is due for revalidation. Failure to update within 24hrs will restrict your account. Reply with your ID number and PIN to verify your account.", "label": "scam", "category": "otp_phishing", "country": "GH"}
 {"text": "Nyasha, tomorrow's meeting has moved to 10am at the Masvingo office. Please confirm you will be there.", "label": "legit", "category": "family_business", "country": "ZW"}
 {"text": "NOTICE: Your SIM will be deactivated in 24 hours for failing re-registration. Reply with your BVN and full names to 09074783667 to keep your line active.", "label": "scam", "category": "sim_swap", "country": "NG"}
-{"text": "M-PESA: Confirmed. You have received KSh5,000 from Mutiso. Ref:EVCHBXGLR9. Hii ni ofa ya mwisho, usikose nafasi hii.", "label": "scam", "category": "mobile_money_reversal", "country": "KE"}
+{"text": "M-PESA: Confirmed. You have received KSh5,000 from Mutiso. Ref:EVCHBXGLR9. This is the last offer, do not miss this chance.", "label": "scam", "category": "mobile_money_reversal", "country": "KE"}
 {"text": "Tapiwa, tomorrow's meeting has moved to 10am at the Mutare office. Please confirm you will be there.", "label": "legit", "category": "family_business", "country": "ZW"}
 {"text": "Centenary Bank ALERT: Your ID number is due for revalidation. Failure to update within 24hrs will restrict your account. Reply with your ID number and PIN to verify your account.", "label": "scam", "category": "otp_phishing", "country": "UG"}
 {"text": "Vacancy alert: Melcom is hiring general hands in Kumasi, no experience needed. Send your CV and GH₵150 processing fee to 0245718409 to start Monday.", "label": "scam", "category": "fake_job", "country": "GH"}
@@ -379,7 +379,7 @@
 {"text": "Equity Bank: Your statement for July is ready in the mobile app. No action is required.", "label": "legit", "category": "bank_notice", "country": "KE"}
 {"text": "MTN MoMo: Airtime purchase of GH₵2,500 was successful. New balance GH₵400. Ref A0M0CVMQX7.", "label": "legit", "category": "wallet_notice", "country": "GH"}
 {"text": "FNB eWallet: Confirmed. You have received R3,000 from Lerato. Ref:X12TVNC9XH. Your grant application has been approved, pay the release fee.", "label": "scam", "category": "mobile_money_reversal", "country": "ZA"}
-{"text": "Moniepoint: Confirmed. You have received ₦5,000 from Emeka. Ref:UAXHV46BXP. Your account go restrict if you no update now.", "label": "scam", "category": "mobile_money_reversal", "country": "NG"}
+{"text": "Moniepoint: Confirmed. You have received ₦5,000 from Emeka. Ref:UAXHV46BXP. Your account will be restricted if you do not update now.", "label": "scam", "category": "mobile_money_reversal", "country": "NG"}
 {"text": "Ngozi, the Man of God saw your breakthrough this week, but you must sow a seed of ₦50,000 today to 07007427990 to activate it.", "label": "scam", "category": "faith_seed", "country": "NG"}
 {"text": "OPay: You have successfully sent ₦15,000 to Ngozi 07001702695. New balance ₦5,000. Ref KVGE975NU7. Thank you for using OPay.", "label": "legit", "category": "wallet_notice", "country": "NG"}
 {"text": "Double your capital in 24hrs with our forex desk, minimum GH₵150. Trusted by 200+ clients in Accra. WhatsApp 0542464844 to start now, limited slots.", "label": "scam", "category": "fake_investment", "country": "GH"}
@@ -434,7 +434,7 @@
 {"text": "Andile, tomorrow's meeting has moved to 10am at the Bloemfontein office. Please confirm you will be there.", "label": "legit", "category": "family_business", "country": "ZA"}
 {"text": "Steward Bank: Your loan repayment of $100 has been received. Outstanding balance $500. Thank you.", "label": "legit", "category": "bank_notice", "country": "ZW"}
 {"text": "KCB: Your statement for July is ready in the mobile app. No action is required.", "label": "legit", "category": "bank_notice", "country": "KE"}
-{"text": "MTN MoMo: Confirmed. You have received UGX20,000 from Okello. Ref:4TRWXP5XBJ. Nsonyiwa, nakuweereza ssente mu bukyamu, nzizaawo.", "label": "scam", "category": "mobile_money_reversal", "country": "UG"}
+{"text": "MTN MoMo: Confirmed. You have received UGX20,000 from Okello. Ref:4TRWXP5XBJ. Sorry, I sent you money by mistake, please return it.", "label": "scam", "category": "mobile_money_reversal", "country": "UG"}
 {"text": "MTN MoMo: Your one time password is 249564. Do not share this code with anyone, including MTN MoMo staff. It expires in 5 minutes.", "label": "legit", "category": "wallet_notice", "country": "UG"}
 {"text": "Your line has been flagged for suspension under the new registration rules. Send your ID number and date of birth to 0749872050 to re-register now.", "label": "scam", "category": "sim_swap", "country": "KE"}
 {"text": "Efua, you qualify for a loan of up to GH₵900 at 0% interest. Send a GH₵900 activation fee to 0545562833 to release the funds today.", "label": "scam", "category": "fake_loan_aid", "country": "GH"}
@@ -526,7 +526,7 @@
 {"text": "Hi Auma, did you manage to get the school fees money? We need to pay on Friday. Please call me when you see this.", "label": "legit", "category": "family_business", "country": "KE"}
 {"text": "A word came for you Njeri. Sow your seed of KSh25,000 via T-Kash to 0799090100 before the midnight service and expect your miracle.", "label": "scam", "category": "faith_seed", "country": "KE"}
 {"text": "NBC alert: A withdrawal of TSh80,000 was made at the Mbeya branch on 12/07. If this was not you, call our fraud line immediately.", "label": "legit", "category": "bank_notice", "country": "TZ"}
-{"text": "EcoCash: Confirmed. You have received $500 from Chipo. Ref:8BN2Q4TAL3. Tumira mari pa nhamba iyi kuti tikubatsire.", "label": "scam", "category": "mobile_money_reversal", "country": "ZW"}
+{"text": "EcoCash: Confirmed. You have received $500 from Chipo. Ref:8BN2Q4TAL3. Send it to this number so we can sort it out today.", "label": "scam", "category": "mobile_money_reversal", "country": "ZW"}
 {"text": "Hello Baraka, this is your HaloPesa agent. My till is down, please send the TSh500,000 to my personal number 0713289463 instead and I will process it.", "label": "scam", "category": "impersonation", "country": "TZ"}
 {"text": "Kwame, tomorrow's meeting has moved to 10am at the Tema office. Please confirm you will be there.", "label": "legit", "category": "family_business", "country": "GH"}
 {"text": "Chinedu, tomorrow's meeting has moved to 10am at the Ibadan office. Please confirm you will be there.", "label": "legit", "category": "family_business", "country": "NG"}

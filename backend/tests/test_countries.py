@@ -39,7 +39,6 @@ def test_every_country_declares_the_data_the_product_depends_on():
         c = get_country(code)
         assert c.regions, f"{code} has no regions — the hotspot map would be empty"
         assert c.providers, f"{code} names no wallets — classifier grounding would be empty"
-        assert c.languages, f"{code} names no languages"
         assert c.region_label
         assert c.mobile_prefixes
 

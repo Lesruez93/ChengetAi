@@ -52,8 +52,8 @@
 ChengetAI covers Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana and
 Tanzania. Almost every "local" detail differs between them — dial code and
 number format, which wallets people use, what the first-level administrative
-unit is called, which languages scam messages arrive in, and which desk you
-call after a loss.
+unit is called, what currency amounts appear in, and which desk you call after
+a loss. (Language is the exception: the product is English-only, see below.)
 
 Rather than fork per country, all of that lives in one immutable registry
 (`services/countries.py`) plus one support-channel table
@@ -73,7 +73,7 @@ Three decisions follow from that, and they are the ones worth arguing about:
    receive" is the same attack in Harare and Lagos — so one model trained
    across all seven markets sees far more examples of each pattern than seven
    per-country models would. What is localised is the prompt's grounding
-   (wallets, currency, languages) and the risk-phrase vocabulary. Correspondingly,
+   (wallets, currency) and the risk-phrase vocabulary. Correspondingly,
    the scam taxonomy names mechanisms, not brands: `mobile_money_reversal`,
    not `ecocash_reversal`.
 
@@ -111,13 +111,11 @@ so each choice below is justified rather than assumed.
      `sample_data/scam_corpus.jsonl`. Fast, offline, fully inspectable via
      learned weights.
    - `LLMClassifier`: Anthropic API with a few-shot prompt grounded in the
-     caller's market — its wallets, currency and languages — over a taxonomy of
-     mechanisms (wrong-deposit reversal, fake jobs, fake investment, fake
-     loans/grants/aid, SIM swap, OTP/identity phishing, impersonation,
-     faith-based seed requests).
+     caller's market — its wallets and currency — over a taxonomy of mechanisms
+     (wrong-deposit reversal, fake jobs, fake investment, fake loans/grants/aid,
+     SIM swap, OTP/identity phishing, impersonation, faith-based seed requests).
 
    *Why AI at all, and not a keyword blocklist?* Scam text is adversarial and
-   code-switched (Shona/English, Swahili/English, Pidgin, isiZulu), and
    phrasing mutates constantly to dodge filters. `SCAM_KEYWORD_REASONS` in `classifier.py`
    doubles as both a UI highlight list *and* a naive-rules comparison point:
    it catches obvious cases ("reverse", "registration fee") but misses
@@ -130,6 +128,11 @@ so each choice below is justified rather than assumed.
    overfit that makes generic spam filters useless here, reappearing one
    country over. `sample_data/generate_scam_corpus.py` emits every pattern for
    every market so the learned weight lands on the mechanism instead.
+
+   *Scope limit:* the corpus and the prompt are **English-only**. A message in
+   another language is still scored, but not reliably, and the prompt is
+   instructed to say so and lower its confidence rather than guess. This is the
+   product's largest coverage gap (`docs/accessibility.md`).
 
 2. **Agent Fraud Sentinel** (`services/sentinel.py`) — an `IsolationForest`
    over amount/hour/transaction-type features, combined with explicit rules

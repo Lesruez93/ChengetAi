@@ -3,8 +3,11 @@
 ChengetAI operates across several African mobile-money markets, and almost
 every "local" detail the product touches differs between them: the dial code
 and national number format, which wallets people actually use, what the
-first-level administrative unit is called, and which languages scam messages
-are written in.
+first-level administrative unit is called, and what currency amounts appear in.
+
+The product operates in English only — see docs/accessibility.md for what that
+costs and why it is currently a deliberate scope boundary rather than an
+oversight.
 
 Rather than scattering those differences through the classifier, the
 reputation service, the feed and the UI, they live here as one immutable
@@ -40,7 +43,6 @@ class Country:
     region_label: str               # what the first-level unit is called locally
     regions: tuple[str, ...]
     providers: tuple[str, ...]      # mobile-money wallets in everyday use
-    languages: tuple[str, ...]      # languages scam messages plausibly arrive in
     currency_code: str
     currency_symbol: str
 
@@ -66,7 +68,6 @@ COUNTRIES: dict[str, Country] = {
             "Matabeleland North", "Matabeleland South", "Midlands",
         ),
         providers=("EcoCash", "OneMoney", "InnBucks"),
-        languages=("English", "Shona", "Ndebele"),
         currency_code="USD",
         currency_symbol="$",
     ),
@@ -83,7 +84,6 @@ COUNTRIES: dict[str, Country] = {
             "North Eastern", "Nyanza", "Rift Valley", "Western",
         ),
         providers=("M-PESA", "Airtel Money", "T-Kash"),
-        languages=("English", "Swahili", "Sheng"),
         currency_code="KES",
         currency_symbol="KSh",
     ),
@@ -100,7 +100,6 @@ COUNTRIES: dict[str, Country] = {
             "South South", "North Central", "North East", "North West",
         ),
         providers=("OPay", "PalmPay", "Moniepoint", "Paga", "MTN MoMo", "Kuda"),
-        languages=("English", "Nigerian Pidgin", "Hausa", "Yoruba", "Igbo"),
         currency_code="NGN",
         currency_symbol="₦",
     ),
@@ -114,7 +113,6 @@ COUNTRIES: dict[str, Country] = {
         region_label="Region",
         regions=("Central", "Eastern", "Northern", "Western"),
         providers=("MTN MoMo", "Airtel Money"),
-        languages=("English", "Luganda", "Swahili"),
         currency_code="UGX",
         currency_symbol="UGX",
     ),
@@ -132,7 +130,6 @@ COUNTRIES: dict[str, Country] = {
         ),
         providers=("Capitec Pay", "FNB eWallet", "Standard Bank Instant Money",
                    "ShopriteMoney", "MTN MoMo"),
-        languages=("English", "isiZulu", "isiXhosa", "Afrikaans", "Sesotho"),
         currency_code="ZAR",
         currency_symbol="R",
     ),
@@ -149,7 +146,6 @@ COUNTRIES: dict[str, Country] = {
             "Volta", "Northern", "Bono", "Upper East", "Upper West",
         ),
         providers=("MTN MoMo", "Telecel Cash", "AirtelTigo Money"),
-        languages=("English", "Twi", "Ga", "Ewe", "Hausa"),
         currency_code="GHS",
         currency_symbol="GH₵",
     ),
@@ -166,7 +162,6 @@ COUNTRIES: dict[str, Country] = {
             "Central", "Southern Highlands", "Western", "Zanzibar",
         ),
         providers=("M-Pesa", "Mixx by Yas", "Airtel Money", "HaloPesa"),
-        languages=("Swahili", "English"),
         currency_code="TZS",
         currency_symbol="TSh",
     ),

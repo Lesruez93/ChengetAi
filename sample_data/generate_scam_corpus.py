@@ -7,6 +7,11 @@ offers, fake investment deals, fake loans and grants, SIM swap, OTP/identity
 phishing, institutional impersonation and faith-based "seed" requests —
 alongside legitimate wallet and bank notices and everyday family/business texts.
 
+All messages are in **English**. The product classifies English only, so a corpus
+containing Shona or Swahili would train the model on text no other part of the
+system is equipped to handle. docs/accessibility.md records the coverage gap this
+leaves.
+
 WHY THE CORPUS IS MULTI-COUNTRY
 -------------------------------
 A corpus drawn from one market teaches the model that the local wallet's *name*
@@ -15,6 +20,8 @@ filters useless here, and it would reappear one country over: a model trained
 only on "EcoCash" messages reads a Kenyan M-PESA scam as unremarkable. Mixing
 markets forces the learned weight onto the mechanism — the reversal request,
 the upfront fee, the shared code — which is the part that actually transfers.
+Per-market variation now comes from wallets, banks, employers, names, towns and
+currency rather than from language.
 
 Each generator therefore draws its wallet, currency, names and institutions
 from a country profile rather than hardcoding them, and every scam pattern is
@@ -53,8 +60,11 @@ class Market:
     amounts: tuple[int, ...]
     trunk_prefixes: tuple[str, ...]
     nsn_length: int
-    # Locale-specific extras used by only some templates.
+    # Locale-specific extra used by only some templates: what the market calls
+    # the identity number a phishing message asks for.
     id_term: str = "ID number"
+    # Market-flavoured English phrasings used in reversal templates, so the
+    # register varies between markets even though the language does not.
     local_lines: tuple[str, ...] = field(default=())
 
 
@@ -71,9 +81,9 @@ MARKETS: tuple[Market, ...] = (
         trunk_prefixes=("71", "73", "77", "78"),
         nsn_length=9,
         local_lines=(
-            "Ndapota dzoserai mari yangu, ndakakanganisa nhamba.",
-            "Tumira mari pa nhamba iyi kuti tikubatsire.",
-            "Kana yakanga isiri yako pindura kuti tidzorerwe.",
+            "Please send my money back, I entered the wrong number.",
+            "Send it to this number so we can sort it out today.",
+            "If it was not meant for you, reply so we can be refunded.",
         ),
     ),
     Market(
@@ -88,9 +98,9 @@ MARKETS: tuple[Market, ...] = (
         trunk_prefixes=("70", "71", "72", "74", "79"),
         nsn_length=9,
         local_lines=(
-            "Nimekutumia pesa kwa bahati mbaya, tafadhali nirudishie.",
-            "Tuma pesa kwa namba hii haraka kabla ya saa mbili.",
-            "Hii ni ofa ya mwisho, usikose nafasi hii.",
+            "I have sent you money by mistake, please send it back.",
+            "Send the money to this number quickly, before two o'clock.",
+            "This is the last offer, do not miss this chance.",
         ),
     ),
     Market(
@@ -106,9 +116,9 @@ MARKETS: tuple[Market, ...] = (
         nsn_length=10,
         id_term="BVN",
         local_lines=(
-            "Abeg send am back, na mistake I take send the money.",
-            "No waste time o, the offer go close today.",
-            "Your account go restrict if you no update now.",
+            "Please send it back, I sent the money by mistake.",
+            "Do not waste time, the offer closes today.",
+            "Your account will be restricted if you do not update now.",
         ),
     ),
     Market(
@@ -123,8 +133,8 @@ MARKETS: tuple[Market, ...] = (
         trunk_prefixes=("70", "75", "77", "78"),
         nsn_length=9,
         local_lines=(
-            "Nsonyiwa, nakuweereza ssente mu bukyamu, nzizaawo.",
-            "Sindika ssente ku namba eno kaakati.",
+            "Sorry, I sent you money by mistake, please return it.",
+            "Send the money to this number now.",
         ),
     ),
     Market(
@@ -156,7 +166,7 @@ MARKETS: tuple[Market, ...] = (
         nsn_length=9,
         local_lines=(
             "Please I sent the MoMo to your number by mistake, kindly reverse.",
-            "Charley, this offer is closing today, send the fee now.",
+            "This offer is closing today, send the fee now.",
         ),
     ),
     Market(
@@ -171,8 +181,8 @@ MARKETS: tuple[Market, ...] = (
         trunk_prefixes=("65", "71", "74", "76"),
         nsn_length=9,
         local_lines=(
-            "Samahani, nimetuma pesa kimakosa, tafadhali nirudishie.",
-            "Tuma ada ya usajili ili kupata kazi hii.",
+            "Sorry, I sent the money in error, please send it back to me.",
+            "Send the registration fee to secure this job.",
         ),
     ),
 )

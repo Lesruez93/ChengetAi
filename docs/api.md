@@ -32,9 +32,11 @@ Classify a message as scam, suspicious, or safe.
 ```json
 { "text": "M-PESA: KSh5,000 sent in error... please reverse...", "country": "KE", "strategy": "baseline" }
 ```
-`country` is optional and grounds the classifier in that market's wallets,
-currency and languages; an unsupported code falls back to `DEFAULT_COUNTRY`
-rather than erroring. `strategy` is optional (`"baseline"` | `"llm"`) and
+`country` is optional and grounds the classifier in that market's wallets and
+currency; an unsupported code falls back to `DEFAULT_COUNTRY` rather than
+erroring. Messages are expected in **English** — other languages are scored but
+not reliably, and the LLM strategy is instructed to say so and lower its
+confidence rather than guess (`docs/accessibility.md`). `strategy` is optional (`"baseline"` | `"llm"`) and
 defaults to the `CLASSIFIER_STRATEGY` env var. If `"llm"` is requested but no
 `ANTHROPIC_API_KEY` is configured, the backend silently falls back to
 `"baseline"`.
@@ -118,8 +120,7 @@ rather than a coordinated release across three codebases.
 ```json
 [{ "code": "KE", "name": "Kenya", "dial_code": "254", "region_label": "Region",
    "regions": ["Nairobi", "Central", "..."], "providers": ["M-PESA", "Airtel Money", "T-Kash"],
-   "languages": ["English", "Swahili", "Sheng"], "currency_code": "KES",
-   "currency_symbol": "KSh", "example_msisdn": "0712345678" }]
+   "currency_code": "KES", "currency_symbol": "KSh", "example_msisdn": "0712345678" }]
 ```
 
 **`GET /reference/categories` `200`**

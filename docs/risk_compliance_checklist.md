@@ -23,7 +23,7 @@ relevant, logs, testing, and clear disclaimers — all addressed below.
 | **Auditability** | Partial | `sentinel_jobs` acts as an audit log for Sentinel analyses; general action logging (who changed what, when) beyond this is a roadmap item (see `docs/deployment_plan.md` → Monitoring). |
 | **Human oversight** | Yes | Classifier returns a confidence score and explanation rather than a bare verdict; number-flagging requires multiple corroborating reports before going public, and a dispute/human-review path is roadmap. **Support contacts are never model-generated** — they are a curated registry with a per-entry `verified` flag, and unverified entries are surfaced to the user as unverified rather than hidden. |
 | **Misuse risk** | Yes | Addressed explicitly below (§ "Misuse risks and mitigations"). |
-| **Bias and fairness** | Partial | Classifier is trained on a synthetic corpus covering eight scam mechanisms across seven markets (`docs/dataset_statement.md`). Row counts are even per market, but **language coverage is not**: the corpus is richest in Shona and Swahili and thinnest in Luganda, Pidgin and the South African languages, so per-market accuracy will not be uniform. No formal bias/fairness audit against demographic subgroups has been run, since all training data is synthetic rather than drawn from a real, demographically-labeled population. |
+| **Bias and fairness** | Partial | Classifier is trained on a synthetic corpus covering eight scam mechanisms across seven markets (`docs/dataset_statement.md`). The corpus is **English-only**, so the product systematically under-serves users who do not read English comfortably — who, across these markets, overlap heavily with those most exposed to mobile-money fraud. That is a fairness limitation stated plainly rather than a gap in the data (`docs/accessibility.md`). No formal bias/fairness audit against demographic subgroups has been run, since all training data is synthetic rather than drawn from a real, demographically-labeled population. |
 
 ## Misuse risks and mitigations
 
@@ -63,8 +63,9 @@ registered — is required before any pilot with real user data and is **not** c
    organisation but carry an unconfirmed contact string, flagged as such in the API and the UI.
    Verifying a market's contacts blocks piloting in that market.
 6. **No per-jurisdiction data-protection review** has been done for any of the seven markets.
-7. The UI is English-only in every market, so the app is less usable than its classifier is capable
-   of being (`docs/accessibility.md`).
+7. **The product is English-only end to end** — interface, corpus, prompt and explanations. This is
+   the largest coverage gap in the product and limits reach in every market it claims
+   (`docs/accessibility.md`).
 
 Disclosing these openly is intentional: naming real, unresolved gaps with a stated plan is more
 useful to a reviewer — and to a user — than a checklist of unqualified yeses.

@@ -38,8 +38,8 @@ class ClassifyResponse {
   final String? matchedCategory;
   final String strategyUsed;
 
-  /// The market the verdict was grounded in — which wallets, currency and
-  /// languages the classifier assumed.
+  /// The market the verdict was grounded in — which wallets and currency the
+  /// classifier assumed.
   final String country;
 
   /// What to do now. Always non-empty for a scam or suspicious verdict: a
