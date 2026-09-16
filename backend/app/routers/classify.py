@@ -9,4 +9,4 @@ router = APIRouter(prefix="/classify", tags=["classify"])
 @router.post("", response_model=ClassifyResponse)
 def classify_message(payload: ClassifyRequest) -> ClassifyResponse:
     classifier = get_classifier(payload.strategy)
-    return classifier.classify(payload.text)
+    return classifier.classify(payload.text, payload.country)

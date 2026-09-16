@@ -12,35 +12,43 @@ export const dynamic = "force-dynamic"; // live stats section reads the backend 
 
 const PROBLEMS = [
   {
-    title: "EcoCash & OneMoney reversal scams",
-    body: "A fake or real small deposit lands, then a message pressures the victim to “reverse” a larger amount to a different number.",
+    title: "The same scam, seven countries",
+    body: "“Reverse this wrong deposit” runs identically on EcoCash, M-PESA, MTN MoMo, Airtel Money and OPay. The script crosses borders faster than any single country’s warnings do.",
   },
   {
-    title: "Fake job & forex offers",
-    body: "Unsolicited remote-job or forex deals ask for an upfront “registration” or “verification” fee before disappearing.",
+    title: "Reporting goes nowhere",
+    body: "Victims are told to “report it”, but not to whom, in what order, or how fast. By the time someone finds the right desk, the transfer is no longer recoverable.",
   },
   {
-    title: "Fake NGO, loan & prophet scams",
-    body: "Emergency-aid, loan, and “sow a seed” religious scams exploit trust and urgency, in code-switched Shona/English text generic filters miss.",
+    title: "Reporting costs safety",
+    body: "The people most exposed to retaliation are the least able to report under their own name. Any system that demands an identity first silences exactly those reports.",
   },
   {
     title: "No shared scam-number database",
-    body: "Every victim starts from zero: there is no citizen-accessible way to check “has this number scammed someone else?” before engaging.",
+    body: "Every victim starts from zero: there is no citizen-accessible way to check “has this number scammed someone else?” — least of all across a border.",
   },
 ];
 
 const FEATURES = [
   {
     title: "Check Message",
-    body: "Paste or share any SMS/WhatsApp message. An AI classifier verdicts it scam, suspicious, or safe, with highlighted risk phrases and a plain-language explanation.",
+    body: "Paste or share any SMS/WhatsApp message. An AI classifier verdicts it scam, suspicious, or safe — grounded in your market’s wallets, currency and languages — with highlighted risk phrases and a plain-language explanation.",
   },
   {
-    title: "Number Lookup",
-    body: "Search a phone number for a Truecaller-style, crowd-sourced reputation: report count, scam categories, and risk level, with abuse controls so one hostile report can’t brand a number.",
+    title: "Get Help",
+    body: "Every non-safe verdict arrives with a pathway, not just a label: what to do in the next five minutes, then the ordered escalation ladder for your country — wallet provider, regulator, police, support line.",
   },
   {
-    title: "Trending Feed & Hotspot Map",
-    body: "A live “trending this week” ranking and a province-level risk map, computed with weighted rules over community reports — transparently not an AI model.",
+    title: "Report — anonymously if you need to",
+    body: "Report a number without an account. Excerpts are redacted at intake, so third-party numbers, OTPs and ID numbers never reach the database. One hostile report can’t brand a number.",
+  },
+  {
+    title: "Number Lookup & cross-border reach",
+    body: "Search any number for a crowd-sourced reputation: report count, categories, risk level — and which countries it has been reported from, because a number working three markets is an operation, not a dispute.",
+  },
+  {
+    title: "Trending Feed & Hotspot Maps",
+    body: "A live “trending this week” ranking, a regional risk map inside your country, and a cross-country rollup — all computed with weighted rules over community reports, transparently not an AI model.",
   },
   {
     title: "Agent Fraud Sentinel",
@@ -92,12 +100,14 @@ export default async function LandingPage() {
           />
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
             <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-              Chengeta — protect your money from Zimbabwe&apos;s fastest-growing scams.
+              Chengeta — check it, report it safely, and know who to call next.
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-neutral">
-              ChengetAI is an AI protection app for ordinary Zimbabweans, SMEs, and mobile-money
-              agents: a scam-message detector, phone number reputation lookup, a trending-scams
-              hotspot map, and fraud detection for agent tills — all tuned to local scam patterns.
+              ChengetAI helps people across African mobile-money markets verify a suspicious
+              message, report the number behind it without putting themselves at risk, and reach
+              the right help fast. Covering Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana
+              and Tanzania — one shared scam database, grounded in each market&apos;s own wallets
+              and languages.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -122,14 +132,16 @@ export default async function LandingPage() {
             The problem
           </h2>
           <p className="mt-2 max-w-2xl text-2xl font-semibold text-foreground">
-            Mobile money is Zimbabwe&apos;s default payment rail — and its primary fraud
-            surface.
+            Mobile money is the default payment rail across much of Africa — and its
+            primary fraud surface.
           </p>
           <p className="mt-4 max-w-3xl text-neutral">
-            Losses hit the poorest hardest and erode trust in digital finance just as the country
-            tries to deepen financial inclusion. Generic spam filters, trained on English-language,
-            Western scam corpora, miss Shona-English code-switched text and EcoCash/OneMoney
-            terminology entirely.
+            Losses hit the poorest hardest and erode trust in digital finance exactly where
+            financial inclusion is deepening fastest. Generic spam filters, trained on
+            English-language Western corpora, miss code-switched Shona, Swahili, Pidgin and isiZulu
+            text and every local wallet&apos;s terminology. And detection alone is not protection:
+            a verdict that does not tell you who to call, in what order, leaves the user exactly
+            where it found them.
           </p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {PROBLEMS.map((p) => (
@@ -145,7 +157,7 @@ export default async function LandingPage() {
         <section id="features" className="bg-surface-tint py-20">
           <div className="mx-auto max-w-6xl px-6">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-secondary">
-              Four capabilities, one app
+              Detect, report safely, reach help
             </h2>
             <p className="mt-2 max-w-2xl text-2xl font-semibold text-foreground">
               Built for the people who actually handle mobile money every day.
@@ -179,12 +191,12 @@ export default async function LandingPage() {
                 <StatCard
                   label="Trending categories (7d)"
                   value={trending.trending_categories.length}
-                  hint={trending.trending_categories[0]?.category.replace(/_/g, " ") ?? "no data yet"}
+                  hint={trending.trending_categories[0]?.label ?? "no data yet"}
                 />
                 <StatCard
-                  label="Red hotspot provinces"
-                  value={trending.hotspots.filter((h) => h.level === "red").length}
-                  hint="out of 10 provinces"
+                  label="Markets with activity"
+                  value={trending.country_hotspots.filter((h) => h.report_count > 0).length}
+                  hint={`out of ${trending.country_hotspots.length} covered`}
                 />
                 <StatCard
                   label="Total reports this week"
@@ -227,9 +239,14 @@ export default async function LandingPage() {
                     CRUD with rate limiting, duplicate collapse, and a public-flag threshold.
                   </li>
                   <li>
-                    <span className="font-medium text-foreground">Trending feed & hotspot map</span> —
+                    <span className="font-medium text-foreground">Trending feed & hotspot maps</span> —
                     weighted-rules aggregation (report count × recency × trust) over the same
                     reports table, not a model.
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Support pathways</span> — a
+                    curated, human-maintained registry per country. Who to call after a scam is
+                    too consequential to generate, so it never is.
                   </li>
                 </ul>
               </div>

@@ -5,8 +5,14 @@ import '../check_message/check_message_screen.dart';
 import '../feed/feed_screen.dart';
 import '../lookup/lookup_screen.dart';
 import '../sentinel/sentinel_screen.dart';
+import '../support/support_screen.dart';
 
-/// Bottom-nav shell tying the four consumer/B2B features together.
+/// Bottom-nav shell tying the consumer and B2B features together.
+///
+/// "Help" is a top-level tab rather than only a destination after a verdict:
+/// someone who has already sent money, or who was phoned rather than texted,
+/// needs the escalation ladder without first pasting a message they may not
+/// have.
 ///
 /// A single [ApiClient] instance is created here and threaded down to every
 /// tab, so all screens share one `http.Client` (connection reuse) instead
@@ -29,6 +35,7 @@ class _HomeShellState extends State<HomeShell> {
   late final List<Widget> _tabs = <Widget>[
     CheckMessageScreen(apiClient: _apiClient),
     LookupScreen(apiClient: _apiClient),
+    SupportScreen(apiClient: _apiClient),
     FeedScreen(apiClient: _apiClient),
     SentinelScreen(apiClient: _apiClient),
   ];
@@ -36,6 +43,10 @@ class _HomeShellState extends State<HomeShell> {
   static const List<NavigationDestination> _destinations = <NavigationDestination>[
     NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Check'),
     NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: 'Lookup'),
+    NavigationDestination(
+        icon: Icon(Icons.support_agent_outlined),
+        selectedIcon: Icon(Icons.support_agent),
+        label: 'Help'),
     NavigationDestination(icon: Icon(Icons.trending_up_outlined), selectedIcon: Icon(Icons.trending_up), label: 'Alerts'),
     NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Sentinel'),
   ];

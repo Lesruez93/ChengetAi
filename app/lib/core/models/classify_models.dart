@@ -27,6 +27,8 @@ class ClassifyResponse {
     required this.explanation,
     required this.matchedCategory,
     required this.strategyUsed,
+    required this.country,
+    required this.nextSteps,
   });
 
   final Verdict verdict;
@@ -35,6 +37,16 @@ class ClassifyResponse {
   final String explanation;
   final String? matchedCategory;
   final String strategyUsed;
+
+  /// The market the verdict was grounded in — which wallets, currency and
+  /// languages the classifier assumed.
+  final String country;
+
+  /// What to do now. Always non-empty for a scam or suspicious verdict: a
+  /// label without a pathway leaves the user exactly where it found them.
+  final List<String> nextSteps;
+
+  bool get isSafe => verdict == 'safe';
 
   factory ClassifyResponse.fromJson(Map<String, dynamic> json) {
     return ClassifyResponse(
@@ -46,6 +58,8 @@ class ClassifyResponse {
       explanation: json['explanation'] as String,
       matchedCategory: json['matched_category'] as String?,
       strategyUsed: json['strategy_used'] as String,
+      country: json['country'] as String? ?? '',
+      nextSteps: List<String>.from(json['next_steps'] as List<dynamic>? ?? <dynamic>[]),
     );
   }
 }

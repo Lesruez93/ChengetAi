@@ -53,7 +53,7 @@ def send_report_confirmation(to: str, msisdn_reported: str, category: str) -> No
     transport.send(
         to,
         f"ChengetAI: Thanks for reporting {msisdn_reported} ({category.replace('_', ' ')}). "
-        "Your report helps protect other Zimbabweans from scams.",
+        "Your report helps protect other people in your community from scams.",
     )
 
 

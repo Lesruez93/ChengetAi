@@ -11,18 +11,31 @@ class FeedItemResponse(BaseModel):
     title: str
     category: str
     summary: str
-    province: str | None
+    country: str | None
+    region: str | None
     created_at: datetime
 
 
 class TrendingCategory(BaseModel):
     category: str
+    label: str
     score: float
     report_count: int
 
 
-class ProvinceHotspot(BaseModel):
-    province: str
+class RegionHotspot(BaseModel):
+    region: str
+    level: HotspotLevel
+    report_count: int
+    top_category: str | None
+
+
+class CountryHotspot(BaseModel):
+    """Country-level rollup, so the map still means something before a single
+    market has enough reports to fill its own regions."""
+
+    country: str
+    country_name: str
     level: HotspotLevel
     report_count: int
     top_category: str | None
@@ -31,8 +44,11 @@ class ProvinceHotspot(BaseModel):
 class TrendingFeedResponse(BaseModel):
     generated_at: datetime
     window_days: int
+    country: str | None
+    region_label: str | None
     trending_categories: list[TrendingCategory]
-    hotspots: list[ProvinceHotspot]
+    hotspots: list[RegionHotspot]
+    country_hotspots: list[CountryHotspot]
     method_note: str = (
         "Computed with weighted rules (report count x recency x reporter trust). "
         "Not an AI/ML model."

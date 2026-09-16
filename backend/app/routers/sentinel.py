@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 
 from app.models.domain import SentinelJob
 from app.schemas.sentinel import FlaggedTransaction, SentinelAnalyzeResponse, SentinelJobSummary
@@ -15,7 +15,7 @@ def list_jobs(store: Store = Depends(get_store)) -> list[SentinelJobSummary]:
     """Past analysis runs, newest first. Used by the admin dashboard's Sentinel job history."""
     return [
         SentinelJobSummary(
-            id=j.id, filename=j.filename, n_transactions=j.n_transactions,
+            id=j.id, filename=j.filename, country=j.country, n_transactions=j.n_transactions,
             n_flagged=j.n_flagged, created_at=j.created_at,
         )
         for j in store.list_sentinel_jobs()
@@ -23,7 +23,16 @@ def list_jobs(store: Store = Depends(get_store)) -> list[SentinelJobSummary]:
 
 
 @router.post("/analyze", response_model=SentinelAnalyzeResponse)
-async def analyze(file: UploadFile, store: Store = Depends(get_store)) -> SentinelAnalyzeResponse:
+async def analyze(
+    file: UploadFile,
+    country: str = Form(
+        default="",
+        description="ISO 3166-1 alpha-2 code of the agent network the file came from. "
+                    "Recorded on the job for reporting; the detection rules themselves "
+                    "are currency- and market-agnostic.",
+    ),
+    store: Store = Depends(get_store),
+) -> SentinelAnalyzeResponse:
     raw_bytes = await file.read()
     try:
         df, scores, rule_reasons = analyze_transactions(raw_bytes)
@@ -56,7 +65,8 @@ async def analyze(file: UploadFile, store: Store = Depends(get_store)) -> Sentin
             summary_by_reason[key] = summary_by_reason.get(key, 0) + 1
 
     job = store.save_sentinel_job(SentinelJob(
-        filename=file.filename or "upload.csv", n_transactions=len(df), n_flagged=len(flagged),
+        filename=file.filename or "upload.csv", country=country.strip().upper(),
+        n_transactions=len(df), n_flagged=len(flagged),
     ))
 
     return SentinelAnalyzeResponse(

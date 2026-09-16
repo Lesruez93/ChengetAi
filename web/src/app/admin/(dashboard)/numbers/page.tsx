@@ -29,7 +29,9 @@ export default async function FlaggedNumbersPage() {
       <h1 className="text-2xl font-semibold text-foreground">Flagged Numbers</h1>
       <p className="mt-1 text-sm text-neutral">
         Every number with at least one report, ranked by report count. Publicly flagged numbers
-        have cleared the abuse-resistance threshold (multiple corroborating reports) — see{" "}
+        have cleared the abuse-resistance threshold (multiple corroborating reports). A number
+        reported from more than one market is marked cross-border and escalates to high risk
+        regardless of volume — see{" "}
         <code className="rounded bg-black/5 px-1 py-0.5 dark:bg-white/10">docs/architecture.md</code>.
       </p>
 
@@ -39,6 +41,7 @@ export default async function FlaggedNumbersPage() {
             <tr>
               <th className="px-4 py-3 font-medium">Number</th>
               <th className="px-4 py-3 font-medium">Risk</th>
+              <th className="px-4 py-3 font-medium">Reported from</th>
               <th className="px-4 py-3 font-medium">Reports</th>
               <th className="px-4 py-3 font-medium">Categories</th>
               <th className="px-4 py-3 font-medium">Publicly flagged</th>
@@ -52,6 +55,16 @@ export default async function FlaggedNumbersPage() {
                 <td className="px-4 py-3">
                   <Badge severity={severityForRiskLevel(n.risk_level)}>{n.risk_level}</Badge>
                 </td>
+                <td className="px-4 py-3 text-neutral">
+                  {Object.entries(n.countries)
+                    .map(([code, count]) => `${code} (${count})`)
+                    .join(", ") || "—"}
+                  {Object.keys(n.countries).length > 1 ? (
+                    <span className="ml-2 rounded bg-black/5 px-1.5 py-0.5 text-xs font-medium dark:bg-white/10">
+                      cross-border
+                    </span>
+                  ) : null}
+                </td>
                 <td className="px-4 py-3 text-neutral">{n.report_count}</td>
                 <td className="px-4 py-3 text-neutral">
                   {Object.entries(n.categories)
@@ -64,7 +77,7 @@ export default async function FlaggedNumbersPage() {
             ))}
             {numbers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-neutral">
+                <td colSpan={7} className="px-4 py-8 text-center text-neutral">
                   No reported numbers yet.
                 </td>
               </tr>

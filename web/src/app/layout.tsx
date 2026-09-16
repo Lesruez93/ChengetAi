@@ -4,11 +4,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "ChengetAI — AI Scam & Fraud Protection for Zimbabwe",
+    default: "ChengetAI — Check it, report it safely, reach help",
     template: "%s · ChengetAI",
   },
   description:
-    "AI-powered scam message detection, phone number reputation, a trending scams map, and agent fraud detection for Zimbabwe.",
+    "AI scam-message detection, safe community reporting, and country-specific support pathways across African mobile-money markets — Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana and Tanzania.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

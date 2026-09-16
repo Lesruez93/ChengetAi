@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/country_preference.dart';
 import '../../core/models/sentinel_models.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_logo.dart';
@@ -65,7 +66,14 @@ class _SentinelScreenState extends State<SentinelScreen> {
     });
 
     try {
-      final SentinelAnalyzeResponse response = await widget.apiClient.analyzeSentinel(bytes, file.name);
+      // The market is recorded on the job for reporting. The detection rules
+      // themselves are currency-agnostic — structuring and rapid reversals
+      // look the same in naira as in shillings — so nothing else changes.
+      final SentinelAnalyzeResponse response = await widget.apiClient.analyzeSentinel(
+        bytes,
+        file.name,
+        country: CountryPreference.code,
+      );
       setState(() => _result = response);
     } on ApiException catch (e) {
       setState(() => _error = e.message);

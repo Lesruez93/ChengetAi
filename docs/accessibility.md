@@ -1,6 +1,6 @@
 # Accessibility Check
 
-Design evidence item per AI4I Product Readiness ToR §9.1. Covers font size, contrast, mobile view,
+Accessibility notes. Covers font size, contrast, mobile view,
 low-bandwidth mode, and language considerations across the Flutter app and the Next.js web app.
 
 ## Color contrast
@@ -25,8 +25,9 @@ Risk/verdict states (`AppColors.forVerdict`, `AppColors.forHotspotLevel`, `AppCo
   body text at 14–16sp and headline/title sizes well above minimum legibility thresholds — no
   custom font-size overrides shrink text below Material defaults.
 - The one deliberately small text style is `ChipThemeData.labelStyle` at 12.5sp for risk chips —
-  used only for short category labels (e.g. "ecocash_reversal"), never for body content a user must
-  read to understand a verdict.
+  used only for short category labels (e.g. "Wrong deposit / reversal"), never for body content a
+  user must read to understand a verdict. Category keys are always rendered through
+  `humanizeCategory()` rather than shown raw, so no user ever reads a snake_case identifier.
 
 ## Mobile responsiveness / low-bandwidth mode
 
@@ -34,22 +35,36 @@ Risk/verdict states (`AppColors.forVerdict`, `AppColors.forHotspotLevel`, `AppCo
   concern in the way a web app has one, since every screen is designed for a phone viewport from
   the start.
 - **Offline/low-bandwidth behaviour** (docs/architecture.md → "Offline behaviour"): the app caches
-  the top-N flagged numbers locally so number-reputation lookups work without connectivity — the
-  common case for prepaid users in low-signal areas. Message classification and Sentinel CSV
-  analysis require connectivity in the current MVP; on-device classifier execution to extend
-  offline coverage is a Month 4–6 roadmap item (proposal §3.2).
+  recent number lookups locally, and bundles the country registry and category list so the report
+  form and country picker render instantly and work without connectivity — the common case for
+  prepaid users in low-signal areas. Message classification, Sentinel CSV analysis and the support
+  pathway require connectivity in the current MVP. Caching the support pathway per country is the
+  highest-priority offline gap, since needing help and having no signal frequently coincide;
+  on-device classifier execution is a Month 4–6 roadmap item.
+- **Hotspot maps are lists, not map graphics.** A list needs no per-country map asset (seven and
+  counting), renders on a low-end device, and is readable by a screen reader — which a coloured
+  polygon is not.
 - The web landing page (`web/`) uses Tailwind's default responsive utilities and has no fixed-width
   layouts that would overflow on small viewports; it has not yet been tested at the 320px breakpoint
   specifically (see "Known gaps" below).
 
 ## Language considerations
 
-- The scam-classifier training corpus and the LLM few-shot prompt are built specifically for
-  Shona-English code-switched text (`docs/dataset_statement.md`, proposal §2.2) — the product's
-  core accessibility consideration is linguistic, not just visual, since this is precisely the gap
-  generic English-only tools leave for Zimbabwean users.
-- Ndebele-language support is an explicit roadmap item (proposal §3.2, "Institutionalization" phase,
-  Month 7–12) — not yet implemented. This is disclosed as a known gap, not claimed as done.
+The product's core accessibility consideration is linguistic, not visual: this is precisely the gap
+generic English-only tools leave across the region.
+
+- The training corpus and the LLM prompt handle code-switched text in **English, Shona, Swahili,
+  Luganda and Nigerian Pidgin** (`docs/dataset_statement.md`). The LLM prompt is grounded per
+  market, so a Kenyan user's explanation names M-PESA and a Nigerian user's names their own bank.
+- **The interface itself is still English-only.** Understanding a *scam message* in Shona or Swahili
+  is not the same as being able to *use the app* in it, and only the first is implemented. Full UI
+  localisation is roadmap, not done.
+- Language coverage is uneven in a way the market list hides: the corpus is richest for Shona and
+  Swahili and thinnest for Luganda, Pidgin and the South African languages. isiZulu, isiXhosa,
+  Afrikaans, Twi, Ga, Ewe, Hausa, Yoruba and Igbo are named in the country registry as languages
+  messages plausibly arrive in, but are **not** yet represented in the training corpus.
+- Additional language coverage is an explicit roadmap item ("Institutionalization" phase, Month
+  7–12) — disclosed as a known gap, not claimed as done.
 
 ## Known gaps (disclosed)
 
@@ -58,4 +73,5 @@ Risk/verdict states (`AppColors.forVerdict`, `AppColors.forHotspotLevel`, `AppCo
    theme colors, not machine-verified against rendered output.
 2. No screen-reader (TalkBack/VoiceOver) pass has been performed on the Flutter app.
 3. Web app has not been tested at the 320px mobile breakpoint specifically.
-4. Ndebele-language support is roadmap, not implemented (see above).
+4. UI localisation is not implemented — the interface is English-only in every market (see above).
+5. The training corpus covers only some of the languages the country registry names (see above).

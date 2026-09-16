@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "info"
 
+    # Fallback country for a number typed in local 0-prefixed form with no
+    # country supplied. Numbers in international form always resolve from their
+    # own dial code and ignore this. Set it to the market a deployment serves
+    # most; see app/services/countries.py for the supported codes.
+    default_country: str = "ZW"
+
     supabase_url: str = ""
     supabase_service_role_key: str = ""
     supabase_anon_key: str = ""

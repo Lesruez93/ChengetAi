@@ -27,6 +27,7 @@ class SentinelJobSummary(BaseModel):
 
     id: str
     filename: str
+    country: str
     n_transactions: int
     n_flagged: int
     created_at: datetime

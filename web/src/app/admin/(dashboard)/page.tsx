@@ -28,6 +28,10 @@ export default async function AdminOverviewPage() {
 
   const totalFlagged = numbers.filter((n) => n.is_publicly_flagged).length;
   const totalAnomalies = jobs.reduce((sum, j) => sum + j.n_flagged, 0);
+  // A number reported from more than one market is the signal a moderator most
+  // needs to see: it separates an organised operation from a local dispute.
+  const crossBorder = numbers.filter((n) => Object.keys(n.countries).length > 1).length;
+  const activeMarkets = trending.country_hotspots.filter((h) => h.report_count > 0).length;
 
   return (
     <div>
@@ -37,13 +41,21 @@ export default async function AdminOverviewPage() {
       </p>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Numbers with reports" value={numbers.length} hint={`${totalFlagged} publicly flagged`} />
-        <StatCard label="Reports on file" value={reports.length} hint="most recent 500" />
+        <StatCard
+          label="Numbers with reports"
+          value={numbers.length}
+          hint={`${totalFlagged} publicly flagged · ${crossBorder} cross-border`}
+        />
+        <StatCard
+          label="Reports on file"
+          value={reports.length}
+          hint={`most recent 500 · ${activeMarkets} active markets`}
+        />
         <StatCard label="Sentinel runs" value={jobs.length} hint={`${totalAnomalies} anomalies flagged total`} />
         <StatCard
           label="Trending categories (7d)"
           value={trending.trending_categories.length}
-          hint={trending.trending_categories[0]?.category.replace(/_/g, " ") ?? "no data yet"}
+          hint={trending.trending_categories[0]?.label ?? "no data yet"}
         />
       </div>
 
@@ -58,7 +70,7 @@ export default async function AdminOverviewPage() {
                 key={c.category}
                 className="flex items-center justify-between rounded-xl border border-black/5 px-4 py-3 text-sm dark:border-white/10"
               >
-                <span className="font-medium text-foreground">{c.category.replace(/_/g, " ")}</span>
+                <span className="font-medium text-foreground">{c.label}</span>
                 <span className="text-neutral">
                   {c.report_count} reports · score {c.score.toFixed(2)}
                 </span>
@@ -71,18 +83,21 @@ export default async function AdminOverviewPage() {
           <p className="mt-3 text-xs text-neutral">{trending.method_note}</p>
         </section>
 
+        {/* The admin view is cross-market by default, so it shows the country
+            rollup rather than one country's regions. Regional detail lives on
+            the per-country view, where it is legible. */}
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-secondary">
-            Province hotspot map
+            Country hotspot map
           </h2>
           <ul className="mt-4 grid grid-cols-2 gap-2">
-            {trending.hotspots.map((h) => (
+            {trending.country_hotspots.map((h) => (
               <li
-                key={h.province}
+                key={h.country}
                 className="flex items-center justify-between rounded-xl border border-black/5 px-4 py-3 text-sm dark:border-white/10"
               >
                 <div>
-                  <p className="font-medium text-foreground">{h.province}</p>
+                  <p className="font-medium text-foreground">{h.country_name}</p>
                   <p className="text-xs text-neutral">{h.report_count} reports</p>
                 </div>
                 <Badge severity={severityForHotspotLevel(h.level)}>{h.level}</Badge>

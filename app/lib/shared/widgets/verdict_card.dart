@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants.dart';
 import '../../core/models/classify_models.dart';
 import '../../core/theme.dart';
 import 'risk_chip.dart';
@@ -17,9 +18,14 @@ class VerdictCard extends StatelessWidget {
     required this.result,
     super.key,
     this.sourceText,
+    this.onGetHelp,
   });
 
   final ClassifyResponse result;
+
+  /// Opens the full support pathway for the user's country. Null hides the
+  /// button (e.g. in a preview or a test).
+  final VoidCallback? onGetHelp;
 
   /// The original message text, used to render inline highlights over the
   /// matched risk phrases. If null, only the RiskChip list is shown.
@@ -106,10 +112,49 @@ class VerdictCard extends StatelessWidget {
                 if (result.matchedCategory != null) ...<Widget>[
                   const SizedBox(height: 12),
                   RiskChip(
-                    label: 'Pattern: ${result.matchedCategory}',
+                    label: 'Pattern: ${humanizeCategory(result.matchedCategory!)}',
                     icon: Icons.label_outline,
                     color: color,
                   ),
+                ],
+                // A verdict without a next step is only half an answer, so the
+                // pathway renders inside the same card rather than behind a
+                // tap the alarmed user may never make.
+                if (result.nextSteps.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 16),
+                  Text(
+                    'What to do now',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey.shade700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...result.nextSteps.map(
+                    (String step) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Icon(Icons.arrow_right, size: 18, color: color),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(step, style: const TextStyle(fontSize: 13.5, height: 1.4)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (onGetHelp != null) ...<Widget>[
+                    const SizedBox(height: 4),
+                    OutlinedButton.icon(
+                      onPressed: onGetHelp,
+                      icon: const Icon(Icons.support_agent_outlined),
+                      label: const Text('See who to contact'),
+                    ),
+                  ],
                 ],
                 if (sourceText != null && sourceText!.trim().isNotEmpty) ...<Widget>[
                   const SizedBox(height: 16),

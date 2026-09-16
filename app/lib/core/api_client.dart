@@ -8,6 +8,7 @@ import 'models/classify_models.dart';
 import 'models/feed_models.dart';
 import 'models/reputation_models.dart';
 import 'models/sentinel_models.dart';
+import 'models/support_models.dart';
 
 /// Thrown for any non-2xx response or transport failure. Carries the raw
 /// status code so callers can special-case things like 422 (validation).
@@ -69,6 +70,25 @@ class ApiClient {
     return parse(_decode(response));
   }
 
+  /// Shared helper for the endpoints that return a bare JSON array.
+  Future<List<T>> _getList<T>(
+    String path,
+    T Function(Map<String, dynamic>) parse, {
+    Map<String, String>? query,
+  }) async {
+    final http.Response response;
+    try {
+      response = await _client.get(_uri(path, query)).timeout(AppConfig.apiTimeout);
+    } catch (e) {
+      throw ApiException('Could not reach the server: $e');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(response.body, statusCode: response.statusCode);
+    }
+    final List<dynamic> decoded = jsonDecode(response.body) as List<dynamic>;
+    return decoded.map((dynamic e) => parse(e as Map<String, dynamic>)).toList();
+  }
+
   Future<T> _post<T>(
     String path,
     Map<String, dynamic> body,
@@ -92,11 +112,14 @@ class ApiClient {
   /// `POST /classify` — classify a pasted/shared message as scam, suspicious
   /// or safe. `strategy` overrides the backend's default classifier; leave
   /// null to use whatever `CLASSIFIER_STRATEGY` the server is configured with.
-  Future<ClassifyResponse> classify(String text, {String? strategy}) {
+  /// `country` grounds the verdict in the right wallets, currency and
+  /// languages; omit it and the backend falls back to its DEFAULT_COUNTRY.
+  Future<ClassifyResponse> classify(String text, {String? country, String? strategy}) {
     return _post(
       '/classify',
       <String, dynamic>{
         'text': text,
+        if (country != null) 'country': country,
         if (strategy != null) 'strategy': strategy,
       },
       ClassifyResponse.fromJson,
@@ -105,9 +128,17 @@ class ApiClient {
 
   /// `GET /numbers/{msisdn}` — number reputation lookup. Accepts local
   /// (0771234567) or international (+263771234567) formats; the backend
-  /// normalizes.
-  Future<NumberReputation> lookupNumber(String msisdn) {
-    return _get('/numbers/${Uri.encodeComponent(msisdn)}', NumberReputation.fromJson);
+  /// normalizes to E.164.
+  ///
+  /// `country` is required for a local-format number and ignored for an
+  /// international one: the same local digits denote different people in
+  /// different markets.
+  Future<NumberReputation> lookupNumber(String msisdn, {String? country}) {
+    return _get(
+      '/numbers/${Uri.encodeComponent(msisdn)}',
+      NumberReputation.fromJson,
+      query: country == null ? null : <String, String>{'country': country},
+    );
   }
 
   /// `POST /reports` — report a number for a scam category.
@@ -115,37 +146,58 @@ class ApiClient {
     return _post('/reports', report.toJson(), ReportResponse.fromJson);
   }
 
-  /// `GET /feed` — seeded editorial/aggregated trending-scam entries.
-  Future<List<FeedItem>> getFeed() async {
-    final http.Response response;
-    try {
-      response = await _client.get(_uri('/feed')).timeout(AppConfig.apiTimeout);
-    } catch (e) {
-      throw ApiException('Could not reach the server: $e');
-    }
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(response.body, statusCode: response.statusCode);
-    }
-    final List<dynamic> decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded.map((dynamic e) => FeedItem.fromJson(e as Map<String, dynamic>)).toList();
+  /// `GET /feed` — editorial/aggregated trending-scam entries. Scoping to a
+  /// country still returns cross-market alerts, which apply everywhere.
+  Future<List<FeedItem>> getFeed({String? country}) {
+    return _getList(
+      '/feed',
+      FeedItem.fromJson,
+      query: country == null ? null : <String, String>{'country': country},
+    );
   }
 
-  /// `GET /feed/trending?window_days=` — live weighted-rules trending
-  /// categories + province hotspot map. Explicitly NOT an AI model — see
-  /// `TrendingFeedResponse.methodNote`.
-  Future<TrendingFeedResponse> getTrendingFeed({int windowDays = 7}) {
+  /// `GET /feed/trending` — live weighted-rules trending categories, the
+  /// regional hotspot map for `country`, and the cross-country rollup.
+  /// Explicitly NOT an AI model — see `TrendingFeedResponse.methodNote`.
+  Future<TrendingFeedResponse> getTrendingFeed({int windowDays = 7, String? country}) {
     return _get(
       '/feed/trending',
       TrendingFeedResponse.fromJson,
-      query: <String, String>{'window_days': '$windowDays'},
+      query: <String, String>{
+        'window_days': '$windowDays',
+        if (country != null) 'country': country,
+      },
     );
+  }
+
+  /// `GET /support/{country}` — the ordered "what do I do now" ladder.
+  /// Pass `category` to lead with that scam type's specific first action.
+  Future<SupportPathway> getSupportPathway(String country, {String? category}) {
+    return _get(
+      '/support/${Uri.encodeComponent(country)}',
+      SupportPathway.fromJson,
+      query: category == null ? null : <String, String>{'category': category},
+    );
+  }
+
+  /// `GET /reference/countries` — live country registry, used to refresh the
+  /// bundled list in `constants.dart` without shipping an app release.
+  Future<List<CountryProfile>> getCountries() {
+    return _getList('/reference/countries', CountryProfile.fromJson);
   }
 
   /// `POST /sentinel/analyze` — multipart CSV upload (field name `file`) for
   /// the Agent Fraud Sentinel B2B anomaly detector.
-  Future<SentinelAnalyzeResponse> analyzeSentinel(Uint8List fileBytes, String filename) async {
+  Future<SentinelAnalyzeResponse> analyzeSentinel(
+    Uint8List fileBytes,
+    String filename, {
+    String? country,
+  }) async {
     final http.MultipartRequest request = http.MultipartRequest('POST', _uri('/sentinel/analyze'))
       ..files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: filename));
+    if (country != null) {
+      request.fields['country'] = country;
+    }
 
     final http.StreamedResponse streamed;
     try {

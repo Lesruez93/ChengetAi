@@ -10,13 +10,13 @@ function formatDate(iso: string) {
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; province?: string }>;
+  searchParams: Promise<{ category?: string; country?: string; region?: string }>;
 }) {
-  const { category, province } = await searchParams;
+  const { category, country, region } = await searchParams;
 
   let reports;
   try {
-    reports = await getReports({ limit: 200, category, province });
+    reports = await getReports({ limit: 200, category, country, region });
   } catch (err) {
     return (
       <div>
@@ -34,7 +34,8 @@ export default async function ReportsPage({
       <p className="mt-1 text-sm text-neutral">
         Moderation queue: the {reports.length} most recent community reports
         {category ? ` in “${category}”` : ""}
-        {province ? ` from ${province}` : ""}.
+        {country ? ` in ${country}` : ""}
+        {region ? ` from ${region}` : ""}.
       </p>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-black/5 dark:border-white/10">
@@ -43,7 +44,8 @@ export default async function ReportsPage({
             <tr>
               <th className="px-4 py-3 font-medium">Number</th>
               <th className="px-4 py-3 font-medium">Category</th>
-              <th className="px-4 py-3 font-medium">Province</th>
+              <th className="px-4 py-3 font-medium">Country</th>
+              <th className="px-4 py-3 font-medium">Region</th>
               <th className="px-4 py-3 font-medium">Excerpt</th>
               <th className="px-4 py-3 font-medium">Trust</th>
               <th className="px-4 py-3 font-medium">Reported</th>
@@ -54,7 +56,8 @@ export default async function ReportsPage({
               <tr key={r.id} className="border-t border-black/5 dark:border-white/10">
                 <td className="px-4 py-3 font-medium text-foreground">{r.msisdn}</td>
                 <td className="px-4 py-3 text-neutral">{r.category.replace(/_/g, " ")}</td>
-                <td className="px-4 py-3 text-neutral">{r.province}</td>
+                <td className="px-4 py-3 text-neutral">{r.country}</td>
+                <td className="px-4 py-3 text-neutral">{r.region}</td>
                 <td className="max-w-xs truncate px-4 py-3 text-neutral" title={r.message_excerpt}>
                   {r.message_excerpt || "—"}
                 </td>

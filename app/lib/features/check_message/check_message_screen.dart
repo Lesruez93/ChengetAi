@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/country_preference.dart';
 import '../../core/models/classify_models.dart';
 import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/country_menu_button.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/report_sheet.dart';
 import '../../shared/widgets/verdict_card.dart';
+import '../support/support_screen.dart';
 
 /// "Check a message" — paste (or, in future, share-into-app) SMS/WhatsApp
 /// text, classify it via `POST /classify`, and show a VerdictCard.
@@ -48,7 +51,11 @@ class _CheckMessageScreenState extends State<CheckMessageScreen> {
     });
 
     try {
-      final ClassifyResponse response = await widget.apiClient.classify(text);
+      // The selected market decides which wallets, currency and languages the
+      // classifier assumes — a Kenyan user should see "M-PESA" in the
+      // explanation, not "EcoCash".
+      final ClassifyResponse response =
+          await widget.apiClient.classify(text, country: CountryPreference.code);
       setState(() => _result = response);
     } on ApiException catch (e) {
       setState(() => _error = e.message);
@@ -66,17 +73,36 @@ class _CheckMessageScreenState extends State<CheckMessageScreen> {
     );
   }
 
+  void _openSupport() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SupportScreen(
+          apiClient: widget.apiClient,
+          initialCategory: _result?.matchedCategory,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(leading: const AppLogo(), title: const Text('Check a Message')),
+      appBar: AppBar(
+        leading: const AppLogo(),
+        title: const Text('Check a Message'),
+        actions: const <Widget>[CountryMenuButton()],
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            Text(
-              'Paste a suspicious SMS, WhatsApp, or email message below.',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13.5),
+            ValueListenableBuilder<String>(
+              valueListenable: CountryPreference.codeNotifier,
+              builder: (BuildContext context, String _, __) => Text(
+                'Paste a suspicious SMS, WhatsApp, or email message below. '
+                'Checking against ${CountryPreference.profile.name}.',
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 13.5),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -84,9 +110,12 @@ class _CheckMessageScreenState extends State<CheckMessageScreen> {
               maxLines: 6,
               minLines: 4,
               maxLength: 4000,
-              decoration: const InputDecoration(
-                hintText: 'e.g. "Confirmed. You have received \$80 into your EcoCash '
-                    'account... please reverse the money to this number..."',
+              decoration: InputDecoration(
+                // The hint names the user's own wallets, so the app reads as
+                // local in every market rather than imported from one.
+                hintText: 'e.g. "Confirmed. You have received money into your '
+                    '${CountryPreference.profile.providers.first} account... please '
+                    'reverse it to this number..."',
                 alignLabelWithHint: true,
               ),
             ),
@@ -114,7 +143,11 @@ class _CheckMessageScreenState extends State<CheckMessageScreen> {
                 onAction: _checkMessage,
               )
             else if (_result != null) ...<Widget>[
-              VerdictCard(result: _result!, sourceText: _textController.text),
+              VerdictCard(
+                result: _result!,
+                sourceText: _textController.text,
+                onGetHelp: _result!.isSafe ? null : _openSupport,
+              ),
               const SizedBox(height: 14),
               OutlinedButton.icon(
                 onPressed: _openReportSheet,

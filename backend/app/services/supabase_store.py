@@ -18,8 +18,9 @@ def _row_to_report(row: dict) -> Report:
     return Report(
         id=row["id"],
         msisdn=row["msisdn"],
+        country=row.get("country", ""),
         category=row["category"],
-        province=row["province"],
+        region=row.get("region", ""),
         message_excerpt=row.get("message_excerpt", ""),
         reporter_id=row.get("reporter_id"),
         reporter_trust=row.get("reporter_trust", 1.0),
@@ -35,8 +36,9 @@ class SupabaseStore:
         self.client.table("reports").insert({
             "id": report.id,
             "msisdn": report.msisdn,
+            "country": report.country,
             "category": report.category,
-            "province": report.province,
+            "region": report.region,
             "message_excerpt": report.message_excerpt,
             "reporter_id": report.reporter_id,
             "reporter_trust": report.reporter_trust,
@@ -71,13 +73,18 @@ class SupabaseStore:
 
         reports = self.reports_for_msisdn(msisdn)
         categories: dict[str, int] = {}
+        countries: dict[str, int] = {}
         for r in reports:
             categories[r.category] = categories.get(r.category, 0) + 1
+            countries[r.country] = countries.get(r.country, 0) + 1
         last = max((r.created_at for r in reports), default=None)
+        home = max(countries, key=lambda c: countries[c]) if countries else ""
         return PhoneNumber(
             msisdn=msisdn,
+            country=home,
             report_count=len(reports),
             categories=categories,
+            countries=countries,
             last_reported_at=last,
             is_publicly_flagged=len(reports) >= get_settings().number_public_flag_threshold,
         )
@@ -98,7 +105,8 @@ class SupabaseStore:
         return [
             FeedItem(
                 id=r["id"], title=r["title"], category=r["category"], summary=r["summary"],
-                province=r.get("province"), created_at=datetime.fromisoformat(r["created_at"]),
+                country=r.get("country"), region=r.get("region"),
+                created_at=datetime.fromisoformat(r["created_at"]),
             )
             for r in rows
         ]
@@ -107,6 +115,7 @@ class SupabaseStore:
         self.client.table("sentinel_jobs").insert({
             "id": job.id,
             "filename": job.filename,
+            "country": job.country,
             "n_transactions": job.n_transactions,
             "n_flagged": job.n_flagged,
             "created_at": job.created_at.isoformat(),
@@ -119,8 +128,9 @@ class SupabaseStore:
         )
         return [
             SentinelJob(
-                id=r["id"], filename=r["filename"], n_transactions=r.get("n_transactions", 0),
-                n_flagged=r.get("n_flagged", 0), created_at=datetime.fromisoformat(r["created_at"]),
+                id=r["id"], filename=r["filename"], country=r.get("country", ""),
+                n_transactions=r.get("n_transactions", 0), n_flagged=r.get("n_flagged", 0),
+                created_at=datetime.fromisoformat(r["created_at"]),
             )
             for r in rows
         ]

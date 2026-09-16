@@ -1,8 +1,9 @@
 name: chengetai
 description: >
-  ChengetAI — AI scam & fraud protection for Zimbabwe. Message classification,
-  number reputation lookup, community trending/hotspot feed, and the Agent
-  Fraud Sentinel B2B CSV analyzer.
+  ChengetAI — scam detection, safe community reporting, and country-specific
+  support pathways across African mobile-money markets. Message classification,
+  number reputation lookup, trending/hotspot feeds, and the Agent Fraud
+  Sentinel B2B CSV analyzer.
 publish_to: "none"
 version: 0.1.0+1
 

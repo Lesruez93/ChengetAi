@@ -1,9 +1,12 @@
 import { API_BASE_URL } from "./config";
 import type {
+  Country,
   FeedItem,
   NumberReputation,
   ReportListItem,
+  ScamCategory,
   SentinelJobSummary,
+  SupportPathway,
   TrendingFeedResponse,
 } from "./types";
 
@@ -33,29 +36,49 @@ async function apiFetch<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-export function getTrendingFeed(windowDays = 7): Promise<TrendingFeedResponse> {
-  return apiFetch(`/feed/trending?window_days=${windowDays}`);
-}
-
-export function getFeedItems(): Promise<FeedItem[]> {
-  return apiFetch("/feed");
-}
-
-export function getFlaggedNumbers(): Promise<NumberReputation[]> {
-  return apiFetch("/numbers");
-}
-
-export function getReports(params?: { limit?: number; category?: string; province?: string }): Promise<
-  ReportListItem[]
-> {
+function qs(params: Record<string, string | number | undefined>): string {
   const query = new URLSearchParams();
-  if (params?.limit) query.set("limit", String(params.limit));
-  if (params?.category) query.set("category", params.category);
-  if (params?.province) query.set("province", params.province);
-  const qs = query.toString();
-  return apiFetch(`/reports${qs ? `?${qs}` : ""}`);
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") query.set(key, String(value));
+  }
+  const s = query.toString();
+  return s ? `?${s}` : "";
+}
+
+/** Omit `country` for the cross-country view; pass it to get the regional map too. */
+export function getTrendingFeed(windowDays = 7, country?: string): Promise<TrendingFeedResponse> {
+  return apiFetch(`/feed/trending${qs({ window_days: windowDays, country })}`);
+}
+
+export function getFeedItems(country?: string): Promise<FeedItem[]> {
+  return apiFetch(`/feed${qs({ country })}`);
+}
+
+export function getFlaggedNumbers(country?: string): Promise<NumberReputation[]> {
+  return apiFetch(`/numbers${qs({ country })}`);
+}
+
+export function getReports(params?: {
+  limit?: number;
+  category?: string;
+  country?: string;
+  region?: string;
+}): Promise<ReportListItem[]> {
+  return apiFetch(`/reports${qs({ ...params })}`);
 }
 
 export function getSentinelJobs(): Promise<SentinelJobSummary[]> {
   return apiFetch("/sentinel/jobs");
+}
+
+export function getCountries(): Promise<Country[]> {
+  return apiFetch("/reference/countries");
+}
+
+export function getCategories(): Promise<ScamCategory[]> {
+  return apiFetch("/reference/categories");
+}
+
+export function getSupportPathway(country: string, category?: string): Promise<SupportPathway> {
+  return apiFetch(`/support/${country}${qs({ category })}`);
 }

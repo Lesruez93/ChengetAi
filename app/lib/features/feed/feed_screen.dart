@@ -3,22 +3,30 @@ import 'package:intl/intl.dart';
 
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
+import '../../core/country_preference.dart';
 import '../../core/models/feed_models.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/country_menu_button.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/risk_chip.dart';
 import '../../shared/widgets/stat_tile.dart';
-import 'widgets/province_hotspot_card.dart';
+import 'widgets/hotspot_card.dart';
 
-/// Alerts / trending feed screen — the second visually-strong demo screen.
+/// Alerts / trending feed screen.
 ///
 /// Two tabs:
-///  - "Alerts": seeded editorial entries from `GET /feed`.
-///  - "Trending": live weighted-rules ranking + province hotspot map from
-///    `GET /feed/trending`. The hotspot list is deliberately a styled list
-///    of province cards (colored dot/badge per `level`) rather than an SVG
-///    map of Zimbabwe, per the spec — legible and fast to build correctly.
+///  - "Alerts": editorial entries from `GET /feed`, scoped to the selected
+///    market but always including cross-market advisories.
+///  - "Trending": live weighted-rules ranking, the within-country hotspot map,
+///    and the cross-country rollup, from `GET /feed/trending`.
+///
+/// Hotspots render as a styled list rather than an SVG map: a list is legible
+/// on a low-end device, needs no per-country map asset (seven and counting),
+/// and is readable by a screen reader, which a coloured polygon is not.
+///
+/// Both tabs reload when the user switches country, since neither answer is
+/// meaningful in the wrong market.
 class FeedScreen extends StatefulWidget {
   const FeedScreen({required this.apiClient, super.key});
 
@@ -35,17 +43,33 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   void initState() {
     super.initState();
-    _feedFuture = widget.apiClient.getFeed();
-    _trendingFuture = widget.apiClient.getTrendingFeed();
+    _feedFuture = widget.apiClient.getFeed(country: CountryPreference.code);
+    _trendingFuture = widget.apiClient.getTrendingFeed(country: CountryPreference.code);
+    CountryPreference.codeNotifier.addListener(_onCountryChanged);
+  }
+
+  @override
+  void dispose() {
+    CountryPreference.codeNotifier.removeListener(_onCountryChanged);
+    super.dispose();
+  }
+
+  void _onCountryChanged() {
+    if (!mounted) return;
+    setState(() {
+      _feedFuture = widget.apiClient.getFeed(country: CountryPreference.code);
+      _trendingFuture = widget.apiClient.getTrendingFeed(country: CountryPreference.code);
+    });
   }
 
   Future<void> _refreshFeed() async {
-    setState(() => _feedFuture = widget.apiClient.getFeed());
+    setState(() => _feedFuture = widget.apiClient.getFeed(country: CountryPreference.code));
     await _feedFuture;
   }
 
   Future<void> _refreshTrending() async {
-    setState(() => _trendingFuture = widget.apiClient.getTrendingFeed());
+    setState(() =>
+        _trendingFuture = widget.apiClient.getTrendingFeed(country: CountryPreference.code));
     await _trendingFuture;
   }
 
@@ -57,6 +81,7 @@ class _FeedScreenState extends State<FeedScreen> {
         appBar: AppBar(
           leading: const AppLogo(),
           title: const Text('Scam Alerts'),
+          actions: const <Widget>[CountryMenuButton()],
           bottom: const TabBar(
             indicatorColor: Colors.white,
             tabs: <Widget>[
@@ -138,8 +163,18 @@ class _FeedItemCard extends StatelessWidget {
               runSpacing: 8,
               children: <Widget>[
                 RiskChip(label: humanizeCategory(item.category), icon: Icons.category_outlined),
-                if (item.province != null)
-                  RiskChip(label: item.province!, icon: Icons.place_outlined, color: Colors.blueGrey),
+                if (item.country == null)
+                  const RiskChip(
+                    label: 'All markets',
+                    icon: Icons.public,
+                    color: Colors.blueGrey,
+                  )
+                else
+                  RiskChip(
+                    label: item.region ?? CountryRegistry.byCode(item.country!).name,
+                    icon: Icons.place_outlined,
+                    color: Colors.blueGrey,
+                  ),
                 RiskChip(
                   label: _relativeTime(item.createdAt),
                   icon: Icons.schedule,
@@ -176,9 +211,11 @@ class _TrendingTab extends StatelessWidget {
         }
 
         final TrendingFeedResponse data = snapshot.data!;
-        final List<ProvinceHotspot> sortedHotspots = List<ProvinceHotspot>.from(data.hotspots)
-          ..sort((ProvinceHotspot a, ProvinceHotspot b) {
-            const Map<String, int> severity = <String, int>{'red': 0, 'yellow': 1, 'green': 2};
+        // The backend already sorts by severity; re-sorting here keeps the
+        // order stable if a cached or older response arrives unsorted.
+        const Map<String, int> severity = <String, int>{'red': 0, 'yellow': 1, 'green': 2};
+        final List<RegionHotspot> sortedHotspots = List<RegionHotspot>.from(data.hotspots)
+          ..sort((RegionHotspot a, RegionHotspot b) {
             final int levelCompare = (severity[a.level] ?? 3).compareTo(severity[b.level] ?? 3);
             if (levelCompare != 0) return levelCompare;
             return b.reportCount.compareTo(a.reportCount);
@@ -207,7 +244,7 @@ class _TrendingTab extends StatelessWidget {
                       width: 150,
                       child: StatTile(
                         value: category.score.toStringAsFixed(1),
-                        label: '${humanizeCategory(category.category)} · ${category.reportCount} reports',
+                        label: '${category.label} · ${category.reportCount} reports',
                         icon: Icons.trending_up,
                         color: AppColors.brandPrimary,
                         dense: true,
@@ -225,9 +262,23 @@ class _TrendingTab extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const _SectionHeader(title: 'Province Hotspots', subtitle: 'Green = quiet, red = active scam activity'),
+            if (sortedHotspots.isNotEmpty) ...<Widget>[
+              _SectionHeader(
+                // "Province", "Region" or "Zone" — whatever this market calls
+                // its own first-level unit, supplied by the API.
+                title: '${data.regionLabel ?? 'Region'} Hotspots',
+                subtitle: 'Green = quiet, red = active scam activity',
+              ),
+              const SizedBox(height: 10),
+              ...sortedHotspots.map((RegionHotspot h) => HotspotCard.region(h)),
+              const SizedBox(height: 16),
+            ],
+            const _SectionHeader(
+              title: 'Across all markets',
+              subtitle: 'Where this week\'s reports are coming from',
+            ),
             const SizedBox(height: 10),
-            ...sortedHotspots.map((ProvinceHotspot h) => ProvinceHotspotCard(hotspot: h)),
+            ...data.countryHotspots.map((CountryHotspot h) => HotspotCard.country(h)),
           ],
         );
       },

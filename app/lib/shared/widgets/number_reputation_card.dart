@@ -93,6 +93,30 @@ class NumberReputationCard extends StatelessWidget {
                 ],
               ),
             ],
+            // Cross-border reach is the single strongest signal on this card:
+            // a number reported from several markets is an organised operation,
+            // not a dispute between two people who know each other.
+            if (reputation.isCrossBorder) ...<Widget>[
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(Icons.public, size: 14, color: AppColors.danger),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Reported from ${reputation.countries.length} countries: '
+                      '${reputation.countries.keys.join(', ')}',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             Row(
               children: <Widget>[

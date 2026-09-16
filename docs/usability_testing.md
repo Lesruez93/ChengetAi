@@ -1,15 +1,14 @@
 # Usability Testing & Feedback Log
 
-Design/testing evidence item per AI4I Product Readiness ToR §9.1 and §11. At MVP/prototype stage,
-the ToR's "reasonable expectations by maturity level" table (§3.2) expects "evidence of execution"
-and honesty about what remains incomplete — not a fully validated external user-testing program.
-This log reflects that stage honestly.
+Usability testing log and planned pilot protocol. At MVP/prototype stage this is evidence of
+execution plus honesty about what remains incomplete — not a fully validated external user-testing
+programme. This log reflects that stage honestly.
 
 ## What has been done so far
 
 | Activity | Method | Outcome |
 |---|---|---|
-| Automated functional testing | 22 `pytest` tests covering classifier accuracy, rate limiting, duplicate collapse, public-flag thresholds, trending-feed ranking, hotspot coverage, and Sentinel anomaly detection (`backend/tests/`) | All passing — verifies backend logic behaves as designed, not a substitute for human usability feedback but the first line of "does this actually work" evidence |
+| Automated functional testing | 72 `pytest` tests covering classifier accuracy across markets, phone-number normalisation and country resolution, excerpt redaction, rate limiting, duplicate collapse, anonymous reporting, public-flag and cross-border thresholds, trending-feed ranking, both hotspot scopes, support-pathway coverage, and Sentinel anomaly detection (`backend/tests/`) | All passing — verifies backend logic behaves as designed, not a substitute for human usability feedback but the first line of "does this actually work" evidence |
 | Internal team walkthrough | Manual run-through of the demo script (`README.md` → "Demo script": Check Message → Number Lookup → Feed → Sentinel → Landing page → Admin dashboard) against a running backend with seeded/uploaded data | Confirmed the core user journey is completable end-to-end without a developer explaining each step |
 | Screenshot review | Web app (landing page + admin dashboard) screenshots captured against live seeded/uploaded data, not mockups (`docs/screenshots/`) | Used to sanity-check visual consistency and that displayed data matches what the backend actually returns |
 
@@ -29,8 +28,8 @@ testing that hasn't happened.
    Message, and any point where the UI required developer explanation to proceed.
 4. Log results in this file (a `## Pilot testing round 1` section will be added here with real
    dates, tester count, and findings once run) — no results are pre-filled or assumed.
-5. Feed findings into the 30/60/90-day milestone plan (proposal §3.2, §12.2), specifically the
+5. Feed findings into the 30/60/90-day milestone plan, specifically the
    "improve prototype from judge feedback" and "improve user onboarding" milestones.
 
-This structure mirrors the ToR's own guidance (§11): "record changes made after feedback" — the
+This structure mirrors the ToR's own guidance: "record changes made after feedback" — the
 placeholder above is intentionally empty until that feedback round actually happens.

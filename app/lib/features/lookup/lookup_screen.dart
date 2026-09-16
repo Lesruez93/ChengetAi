@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/country_preference.dart';
 import '../../core/models/reputation_models.dart';
 import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/country_menu_button.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../../shared/widgets/number_reputation_card.dart';
 import '../../shared/widgets/report_sheet.dart';
@@ -55,10 +57,17 @@ class _LookupScreenState extends State<LookupScreen> {
     });
 
     try {
-      final NumberReputation reputation = await widget.apiClient.lookupNumber(msisdn);
+      // A local-format number is ambiguous across markets — 0771234567 is
+      // valid in Zimbabwe, Uganda and Tanzania — so the selected country goes
+      // with the request. The backend ignores it for an international number.
+      final NumberReputation reputation = await widget.apiClient
+          .lookupNumber(msisdn, country: CountryPreference.code);
       setState(() => _result = reputation);
       await _cache?.save(reputation);
     } on ApiException catch (e) {
+      // Cache keys are the raw input, so an offline hit only matches a number
+      // the user typed the same way before — acceptable for a fallback that
+      // exists purely so a repeat check works with no signal.
       final NumberReputation? cached = _cache?.read(msisdn);
       if (cached != null) {
         setState(() => _result = cached);
@@ -81,15 +90,23 @@ class _LookupScreenState extends State<LookupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(leading: const AppLogo(), title: const Text('Number Lookup')),
+      appBar: AppBar(
+        leading: const AppLogo(),
+        title: const Text('Number Lookup'),
+        actions: const <Widget>[CountryMenuButton()],
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            Text(
-              "Check whether a number has been reported for scams before you reply, "
-              'call back, or send money.',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13.5),
+            ValueListenableBuilder<String>(
+              valueListenable: CountryPreference.codeNotifier,
+              builder: (BuildContext context, String _, __) => Text(
+                'Check whether a number has been reported for scams before you reply, '
+                'call back, or send money. Local numbers are read as '
+                '${CountryPreference.profile.name} — type +country code for any other market.',
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 13.5),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -98,9 +115,9 @@ class _LookupScreenState extends State<LookupScreen> {
                   child: TextField(
                     controller: _msisdnController,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      hintText: '0771234567',
-                      prefixIcon: Icon(Icons.phone_outlined),
+                    decoration: InputDecoration(
+                      hintText: CountryPreference.profile.exampleMsisdn,
+                      prefixIcon: const Icon(Icons.phone_outlined),
                     ),
                     onSubmitted: (_) => _search(),
                   ),

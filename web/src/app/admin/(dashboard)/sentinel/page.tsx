@@ -35,6 +35,7 @@ export default async function SentinelJobsPage() {
           <thead className="bg-surface-tint text-xs uppercase tracking-wide text-neutral">
             <tr>
               <th className="px-4 py-3 font-medium">File</th>
+              <th className="px-4 py-3 font-medium">Market</th>
               <th className="px-4 py-3 font-medium">Transactions</th>
               <th className="px-4 py-3 font-medium">Flagged</th>
               <th className="px-4 py-3 font-medium">Flag rate</th>
@@ -45,6 +46,7 @@ export default async function SentinelJobsPage() {
             {jobs.map((j) => (
               <tr key={j.id} className="border-t border-black/5 dark:border-white/10">
                 <td className="px-4 py-3 font-medium text-foreground">{j.filename}</td>
+                <td className="px-4 py-3 text-neutral">{j.country || "—"}</td>
                 <td className="px-4 py-3 text-neutral">{j.n_transactions}</td>
                 <td className="px-4 py-3 text-neutral">{j.n_flagged}</td>
                 <td className="px-4 py-3 text-neutral">
@@ -55,7 +57,7 @@ export default async function SentinelJobsPage() {
             ))}
             {jobs.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral">
+                <td colSpan={6} className="px-4 py-8 text-center text-neutral">
                   No Sentinel analysis runs yet.
                 </td>
               </tr>
