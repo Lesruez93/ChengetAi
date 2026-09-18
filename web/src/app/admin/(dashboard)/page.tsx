@@ -72,7 +72,8 @@ export default async function AdminOverviewPage() {
               >
                 <span className="font-medium text-foreground">{c.label}</span>
                 <span className="text-neutral">
-                  {c.report_count} reports · score {c.score.toFixed(2)}
+                  {c.report_count} {c.report_count === 1 ? "report" : "reports"} · score{" "}
+                  {c.score.toFixed(2)}
                 </span>
               </li>
             ))}

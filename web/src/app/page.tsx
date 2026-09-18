@@ -29,6 +29,27 @@ const PROBLEMS = [
   },
 ];
 
+// The Safety, Reporting & Protection spine. Detection is only the first beat;
+// the page leads with all three because a tool that stops at a verdict leaves
+// the user exactly where it found them.
+const FLOW = [
+  {
+    step: "01",
+    title: "Check it",
+    body: "Paste a suspicious message. You get a verdict, the exact phrases that triggered it, and a plain-language reason — grounded in your own market’s wallets and currency, not a generic filter’s idea of spam.",
+  },
+  {
+    step: "02",
+    title: "Report it safely",
+    body: "Anonymously, with no account. Your report still counts toward the number’s reputation. Phone numbers, one-time codes and ID numbers are stripped from the message before it is ever stored.",
+  },
+  {
+    step: "03",
+    title: "Reach help",
+    body: "Every scam verdict comes with what to do in the next five minutes, then the ordered list of who to contact in your country — wallet provider first, because it is the only one that can still stop the transfer.",
+  },
+];
+
 const FEATURES = [
   {
     title: "Check Message",
@@ -83,6 +104,10 @@ async function loadLiveStats(): Promise<{ data: TrendingFeedResponse | null; err
 
 export default async function LandingPage() {
   const { data: trending, error } = await loadLiveStats();
+  // The covered-markets list comes from the live country registry rather than a
+  // hardcoded array, so the page can never claim a market the backend has
+  // dropped — and picks up a new one the moment it is added.
+  const markets = trending?.country_hotspots ?? [];
 
   return (
     <>
@@ -152,6 +177,67 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* How it works — the three-beat flow */}
+        <section id="flow" className="bg-surface-tint py-20">
+          <div className="mx-auto max-w-6xl px-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-secondary">
+              How it works
+            </h2>
+            <p className="mt-2 max-w-2xl text-2xl font-semibold text-foreground">
+              Detect, report safely, reach help — in that order.
+            </p>
+            <p className="mt-4 max-w-3xl text-neutral">
+              Most scam tools stop at the first step. A verdict that doesn&apos;t tell you who to
+              call, in what order, and how fast is only half an answer.
+            </p>
+            <ol className="mt-10 grid gap-6 md:grid-cols-3">
+              {FLOW.map((f) => (
+                <li
+                  key={f.step}
+                  className="rounded-2xl bg-white p-6 shadow-sm dark:bg-white/5"
+                >
+                  <span className="text-sm font-semibold text-brand-secondary">{f.step}</span>
+                  <h3 className="mt-2 text-lg font-semibold text-brand-primary">{f.title}</h3>
+                  <p className="mt-2 text-sm text-neutral">{f.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* Market coverage — driven by the live registry, not a hardcoded list */}
+        <section id="coverage" className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-secondary">
+            Where it works
+          </h2>
+          <p className="mt-2 max-w-2xl text-2xl font-semibold text-foreground">
+            One shared scam database across {markets.length || "seven"} markets.
+          </p>
+          <p className="mt-4 max-w-3xl text-neutral">
+            A number reported in Lagos is visible to someone in Accra. Scam scripts already cross
+            borders faster than any single country&apos;s warnings do — this is the one thing that
+            gets better, not worse, as the product spans markets.
+          </p>
+          {markets.length > 0 ? (
+            <ul className="mt-10 flex flex-wrap gap-3">
+              {markets.map((m) => (
+                <li
+                  key={m.country}
+                  className="rounded-full border border-black/5 bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm dark:border-white/10 dark:bg-white/5"
+                >
+                  {m.country_name}
+                  <span className="ml-2 text-xs font-normal text-neutral">{m.country}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="mt-6 max-w-3xl text-sm text-neutral">
+            Adding a market is a data change in two files — no new model, no client release. What
+            doesn&apos;t come for free is the part that isn&apos;t software: verifying each
+            country&apos;s support-desk contacts, which is a prerequisite before piloting there.
+          </p>
+        </section>
+
         {/* Features */}
         <section id="features" className="bg-surface-tint py-20">
           <div className="mx-auto max-w-6xl px-6">
@@ -178,7 +264,7 @@ export default async function LandingPage() {
             Live from the ChengetAI API
           </h2>
           <p className="mt-2 max-w-2xl text-2xl font-semibold text-foreground">
-            This week&apos;s trending scams, computed from real community reports.
+            This week&apos;s trending scams, computed live from community reports.
           </p>
           {error || !trending ? (
             <div className="mt-8">
@@ -203,7 +289,10 @@ export default async function LandingPage() {
                   hint="community-submitted"
                 />
               </div>
-              <p className="mt-4 text-xs text-neutral">{trending.method_note}</p>
+              <p className="mt-4 text-xs text-neutral">
+                {trending.method_note} This deployment runs on seeded demonstration data, not real
+                user reports — see the dataset statement in the repository.
+              </p>
             </>
           )}
         </section>
@@ -262,8 +351,8 @@ export default async function LandingPage() {
             Real screens from a running backend — not mockups.
           </p>
           <p className="mt-4 max-w-3xl text-neutral">
-            Every screenshot below was captured against the live ChengetAI API with real
-            seeded/uploaded data. Grab the Android build or the full source below.
+            The dashboard screenshots below were captured against a running ChengetAI backend with
+            seeded data — not mockups. Grab the Android build or the full source below.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -288,6 +377,11 @@ export default async function LandingPage() {
           </p>
 
           <h3 className="mt-14 text-lg font-semibold text-foreground">Mobile app</h3>
+          <p className="mt-2 max-w-3xl text-sm text-neutral">
+            This capture predates the current build and does not yet show the Get Help tab, the
+            country switcher, or cross-border reach on a number. Refreshed captures follow the next
+            Android build.
+          </p>
           <div className="mt-4 flex flex-wrap gap-6">
             {MOBILE_SCREENSHOTS.map((shot) => (
               <a

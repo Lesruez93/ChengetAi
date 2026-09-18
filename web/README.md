@@ -5,8 +5,8 @@ Next.js (App Router) app with two things in it:
 - **`/`** — the public marketing landing page, including a "live from the
   ChengetAI API" stats section pulled server-side from `/feed/trending`.
 - **`/admin/*`** — a password-gated internal dashboard: an overview with
-  KPIs and the province hotspot map, a report moderation queue, flagged-number
-  review, and Sentinel job history. See `src/lib/auth.ts` and
+  KPIs and the cross-country hotspot map, a report moderation queue,
+  flagged-number review (with cross-border markers), and Sentinel job history. See `src/lib/auth.ts` and
   `docs/architecture.md` → "Admin dashboard auth" (in the repo root) for how
   the gate works and its known limitations.
 

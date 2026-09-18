@@ -83,6 +83,25 @@ in digital payments.
 | **Agent Fraud Sentinel (B2B)** | Upload a mobile-money agent transaction CSV; get back flagged transactions (rapid reversals, structuring, unusual hours) with human-readable reasons. |
 | **Landing page & Admin dashboard** | A Next.js web app (`web/`): a public marketing page with live stats, and a password-gated admin dashboard for report moderation, flagged-number review (with cross-border markers) and Sentinel job history. |
 
+### Screenshots
+
+`docs/screenshots/` holds the current set — `landing-page.png`,
+`admin-overview.png`, `admin-reports.png`, `admin-numbers.png`,
+`admin-sentinel.png`, `admin-login.png` — captured against a running backend
+with seeded data, not mockups. They are also served from the live landing page
+at [chengetai.vercel.app](https://chengetai.vercel.app).
+
+The one exception is the **mobile** capture
+(`web/public/screenshots/mobile-number-lookup.png`): it predates the current
+build and does not show the Get Help tab, the country switcher, or cross-border
+reach on a number. Refreshing it needs a device or emulator, which the
+authoring environment does not have. The landing page says so next to the image
+rather than presenting it as current.
+
+To regenerate the dashboard set, run the backend and `npm run start` in `web/`
+with `ADMIN_PASSWORD` set, then drive Chromium over `/`, `/admin/login`,
+`/admin`, `/admin/reports`, `/admin/numbers` and `/admin/sentinel`.
+
 ---
 
 ## How one codebase serves seven markets
