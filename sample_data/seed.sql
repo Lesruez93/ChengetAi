@@ -184,13 +184,22 @@ on conflict do nothing;
 -- Seed: a couple of sample numbers/reports so Lookup has something to find in a fresh project
 insert into public.numbers (msisdn, report_count, categories, last_reported_at, is_publicly_flagged) values
     ('0771234567', 2, '{"ecocash_reversal": 2}'::jsonb, now(), false),
-    ('0782345678', 1, '{"fake_job": 1}'::jsonb, now(), false)
+    ('0782345678', 1, '{"fake_job": 1}'::jsonb, now(), false),
+    -- demo "known scammer" number (+263 71 042 3555): 6 reports over 3 categories,
+    -- which risk_level_for() in backend/app/services/reputation.py scores as high
+    ('0710423555', 6, '{"ecocash_reversal": 3, "fake_job": 1, "fake_forex": 2}'::jsonb, now(), true)
 on conflict (msisdn) do nothing;
 
 insert into public.reports (msisdn, category, province, message_excerpt, reporter_trust) values
     ('0771234567', 'ecocash_reversal', 'Harare', 'Wrong deposit, please reverse...', 1.4),
     ('0771234567', 'ecocash_reversal', 'Harare', 'Confirmed. You have received $80...', 1.0),
-    ('0782345678', 'fake_job', 'Bulawayo', 'Congratulations! Shortlisted for remote job...', 1.2)
+    ('0782345678', 'fake_job', 'Bulawayo', 'Congratulations! Shortlisted for remote job...', 1.2),
+    ('0710423555', 'ecocash_reversal', 'Harare', 'Good day, I sent $50 to your number by mistake...', 1.5),
+    ('0710423555', 'ecocash_reversal', 'Harare', 'Please reverse to 0710423555, my child is in hospital', 1.3),
+    ('0710423555', 'ecocash_reversal', 'Harare', 'Agent said reverse the money before 5pm...', 1.0),
+    ('0710423555', 'fake_job', 'Bulawayo', 'Econet HR: pay $15 registration for your interview slot', 1.2),
+    ('0710423555', 'fake_forex', 'Harare', 'Rate 1:14 today, send USD first for verification', 1.1),
+    ('0710423555', 'fake_forex', 'Midlands', 'Cash out USD cash today, deposit ZWL first', 0.9)
 on conflict do nothing;
 
 -- Note: sample_data/scam_corpus.jsonl and sample_data/transactions_sample.csv are loaded

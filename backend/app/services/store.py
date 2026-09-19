@@ -69,6 +69,27 @@ class InMemoryStore:
             Report(msisdn="0755678901", category="fake_loan_ngo", province="Masvingo",
                    message_excerpt="You qualify for a $2000 loan...", reporter_trust=0.9,
                    created_at=now - timedelta(days=3)),
+            # 0710423555 (+263 71 042 3555) is the demo "known scammer" number: enough
+            # reports across enough categories to come back high risk and publicly
+            # flagged, so a lookup of it always shows the worst-case verdict on stage.
+            Report(msisdn="0710423555", category="ecocash_reversal", province="Harare",
+                   message_excerpt="Good day, I sent $50 to your number by mistake...",
+                   reporter_trust=1.5, created_at=now - timedelta(days=4)),
+            Report(msisdn="0710423555", category="ecocash_reversal", province="Harare",
+                   message_excerpt="Please reverse to 0710423555, my child is in hospital",
+                   reporter_trust=1.3, created_at=now - timedelta(days=2)),
+            Report(msisdn="0710423555", category="ecocash_reversal", province="Harare",
+                   message_excerpt="Agent said reverse the money before 5pm...",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=30)),
+            Report(msisdn="0710423555", category="fake_job", province="Bulawayo",
+                   message_excerpt="Econet HR: pay $15 registration for your interview slot",
+                   reporter_trust=1.2, created_at=now - timedelta(hours=18)),
+            Report(msisdn="0710423555", category="fake_forex", province="Harare",
+                   message_excerpt="Rate 1:14 today, send USD first for verification",
+                   reporter_trust=1.1, created_at=now - timedelta(hours=8)),
+            Report(msisdn="0710423555", category="fake_forex", province="Midlands",
+                   message_excerpt="Cash out USD cash today, deposit ZWL first",
+                   reporter_trust=0.9, created_at=now - timedelta(hours=3)),
         ]
         self._reports.extend(seed_reports)
 
