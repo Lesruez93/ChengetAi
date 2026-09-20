@@ -375,8 +375,19 @@ function card(slide, x, y, w, h, opts = {}) {
     "A verdict without a next step is only half an answer — so every non-safe verdict " +
       "ships with the pathway attached, not behind another tap.",
     {
-      x: M, y: 5.86, w: CW, h: 0.4,
-      fontFace: FONT_B, fontSize: 13.5, italic: true, color: C.primary, isTextBox: true, margin: 0,
+      x: M, y: 5.70, w: CW, h: 0.5,
+      fontFace: FONT_B, fontSize: 13.5, italic: true, color: C.primary,
+      valign: "top", isTextBox: true, margin: 0,
+    }
+  );
+
+  s.addText(
+    "And on Android the first beat no longer waits to be asked — Call Guard screens " +
+      "incoming calls, texts and WhatsApp calls as they arrive.",
+    {
+      x: M, y: 6.34, w: CW, h: 0.5,
+      fontFace: FONT_B, fontSize: 13.5, italic: true, color: C.neutral,
+      valign: "top", isTextBox: true, margin: 0,
     }
   );
 
@@ -387,7 +398,7 @@ function card(slide, x, y, w, h, opts = {}) {
 // 5 — What's built
 // ===========================================================================
 {
-  const s = lightSlide("What's built", "Six modules, one backend, one shared database.", { tint: true });
+  const s = lightSlide("What's built", "Seven modules, one backend, one shared database.", { tint: true });
 
   const mods = [
     ["Check Message", "AI classifier, grounded per market. Verdict, confidence, risk phrases, plain-language reason."],
@@ -403,30 +414,122 @@ function card(slide, x, y, w, h, opts = {}) {
     const col = i % 2;
     const row = Math.floor(i / 2);
     const x = M + col * (cw + 0.36);
-    const y = 1.92 + row * 1.42;
-    card(s, x, y, cw, 1.22, { fill: C.white });
+    const y = 1.86 + row * 1.30;
+    card(s, x, y, cw, 1.16, { fill: C.white });
     s.addText(title, {
-      x: x + 0.34, y: y + 0.2, w: cw - 0.68, h: 0.32,
+      x: x + 0.34, y: y + 0.17, w: cw - 0.68, h: 0.3,
       fontFace: FONT_H, fontSize: 16, bold: true, color: C.primary, isTextBox: true, margin: 0,
     });
     s.addText(body, {
-      x: x + 0.34, y: y + 0.56, w: cw - 0.68, h: 0.56,
+      x: x + 0.34, y: y + 0.5, w: cw - 0.68, h: 0.56,
       fontFace: FONT_B, fontSize: 12.5, color: C.ink, isTextBox: true, margin: 0,
     });
   });
+
+  // The seventh module gets the full width and the filled treatment: it is the
+  // newest surface and the only one that acts before the user does.
+  s.addShape(pres.ShapeType.roundRect, {
+    x: M, y: 5.72, w: CW, h: 0.92, rectRadius: 0.08,
+    fill: { color: C.primary }, shadow: shadow(),
+  });
+  s.addText("Call Guard", {
+    x: M + 0.34, y: 5.87, w: 2.6, h: 0.3,
+    fontFace: FONT_H, fontSize: 16, bold: true, color: C.white, isTextBox: true, margin: 0,
+  });
+  s.addText(
+    "Screens incoming calls, SMS and WhatsApp calls — natively on Android, so it works " +
+      "with the app closed.",
+    {
+      x: M + 0.34, y: 6.2, w: CW - 0.68, h: 0.34,
+      fontFace: FONT_B, fontSize: 12.5, color: "DCEDE9", isTextBox: true, margin: 0,
+    }
+  );
 
   s.addText(
     `Plus a public landing page and a moderation dashboard. ${F.categories} scam categories, ` +
       `named by mechanism rather than by wallet brand — so one taxonomy holds in every market.`,
     {
-      x: M, y: 6.12, w: CW, h: 0.4,
+      x: M, y: 6.78, w: CW, h: 0.4,
       fontFace: FONT_B, fontSize: 13, color: C.neutral, isTextBox: true, margin: 0,
     }
   );
 }
 
 // ===========================================================================
-// 6 — Product proof
+// 6 — Call Guard
+// ===========================================================================
+{
+  const s = lightSlide("Call Guard", "It warns you before you pick up.");
+
+  s.addText(
+    "Pasting a message assumes the user already suspects something. Call Guard drops that " +
+      "assumption: the check runs as the call, text or WhatsApp call arrives.",
+    {
+      x: M, y: 1.9, w: 10.6, h: 0.44,
+      fontFace: FONT_B, fontSize: 14, color: C.neutral, isTextBox: true, margin: 0,
+    }
+  );
+
+  const channels = [
+    ["Incoming call", "A call-screening service resolves the caller against the shared reputation database while the phone is still ringing."],
+    ["SMS", "Sender looked up and the body classified — two independent signals, since a new number has no reputation but still sends the known script."],
+    ["WhatsApp call", "A notification listener catches VoIP calls that never reach the dialler — increasingly where the traffic actually is."],
+  ];
+
+  const cw = (CW - 0.6) / 3;
+  channels.forEach(([title, body], i) => {
+    const x = M + i * (cw + 0.3);
+    card(s, x, 2.36, cw, 2.24, { fill: C.tint });
+    badge(s, x + 0.34, 2.58, String(i + 1), { d: 0.5, size: 14 });
+    s.addText(title, {
+      x: x + 0.34, y: 3.16, w: cw - 0.68, h: 0.3,
+      fontFace: FONT_H, fontSize: 17, bold: true, color: C.primary,
+      valign: "top", isTextBox: true, margin: 0,
+    });
+    s.addText(body, {
+      x: x + 0.34, y: 3.5, w: cw - 0.68, h: 0.84,
+      fontFace: FONT_B, fontSize: 12, color: C.ink, lineSpacing: 15,
+      valign: "top", isTextBox: true, margin: 0,
+    });
+  });
+
+  const facts = [
+    ["Works with the app closed", "The pipeline is native Kotlin, not Flutter — a call can arrive when the engine was never started since boot. A warning that only fires while the app happens to be open is not protection."],
+    ["One pipeline, one threshold", "All three channels converge on the same lookup and the same warning bar, and the in-app test button drives that exact path rather than a parallel one."],
+    ["Android only, and we say why", "iOS forbids a live lookup on an incoming number; the nearest equivalent uploads a static blocklist in advance. That is a different feature, so we state the gap instead of shipping a weaker port."],
+  ];
+
+  facts.forEach(([title, body], i) => {
+    const x = M + i * (cw + 0.3);
+    s.addText(title, {
+      x, y: 4.82, w: cw, h: 0.3,
+      fontFace: FONT_H, fontSize: 14, bold: true, color: C.primary,
+      valign: "top", isTextBox: true, margin: 0,
+    });
+    s.addText(body, {
+      x, y: 5.16, w: cw, h: 1.3,
+      fontFace: FONT_B, fontSize: 12, color: C.ink, lineSpacing: 15.5,
+      valign: "top", isTextBox: true, margin: 0,
+    });
+  });
+
+  s.addText(
+    "Same database, same verdict — reaching the user through the channel the scam actually arrives on.",
+    {
+      x: M, y: 6.5, w: CW, h: 0.4,
+      fontFace: FONT_B, fontSize: 13.5, italic: true, color: C.primary, isTextBox: true, margin: 0,
+    }
+  );
+
+  s.addNotes(
+    "The newest surface and the one that changes the product's posture: everything else waits " +
+      "for the user to ask. Worth saying out loud that the screening is native Android rather " +
+      "than Flutter, and that iOS cannot do this — the honesty lands better than a roadmap promise."
+  );
+}
+
+// ===========================================================================
+// 7 — Product proof
 // ===========================================================================
 {
   const s = lightSlide("It runs", "Not slideware — this is the running product.");
@@ -463,13 +566,13 @@ function card(slide, x, y, w, h, opts = {}) {
 }
 
 // ===========================================================================
-// 7 — Architecture
+// 8 — Architecture
 // ===========================================================================
 {
   const s = lightSlide("Architecture", "One backend. Two clients. Zero setup to evaluate.", { tint: true });
 
   const tiers = [
-    ["Clients", "Flutter app (Android-first)\nNext.js landing page + admin dashboard", C.secondary],
+    ["Clients", "Flutter app (Android-first) + native Kotlin call/SMS/WhatsApp screening\nNext.js landing page + admin dashboard", C.secondary],
     ["FastAPI backend", "classifier · reputation · feed · support\ncountries · taxonomy · redaction · sentinel", C.primary],
     ["Storage", "In-memory store by default\nSupabase Postgres + RLS with one env var", "3C6E64"],
   ];
@@ -517,7 +620,7 @@ function card(slide, x, y, w, h, opts = {}) {
 }
 
 // ===========================================================================
-// 8 — Why AI, and where not
+// 9 — Why AI, and where not
 // ===========================================================================
 {
   const s = lightSlide("Judgement", "We justify AI case by case — and say so at runtime.");
@@ -566,7 +669,7 @@ function card(slide, x, y, w, h, opts = {}) {
 }
 
 // ===========================================================================
-// 9 — Seven markets
+// 10 — Seven markets
 // ===========================================================================
 {
   const s = lightSlide("Coverage", `One codebase, ${F.markets.length} markets.`, { tint: true });
@@ -595,7 +698,7 @@ function card(slide, x, y, w, h, opts = {}) {
 }
 
 // ===========================================================================
-// 10 — Traction
+// 11 — Traction
 // ===========================================================================
 {
   const s = lightSlide("Traction", "What already exists, not what's promised.");
@@ -627,7 +730,8 @@ function card(slide, x, y, w, h, opts = {}) {
 
   const built = [
     "FastAPI backend with a full API surface that runs with zero external services",
-    "Flutter Android-first app: check, help, report, lookup, feed, sentinel",
+    "Flutter Android-first app: check, lookup, calls, help, alerts, sentinel",
+    "Native Android screening for incoming calls, SMS and WhatsApp calls — runs with the app closed",
     "Deployed landing page and a password-gated moderation dashboard",
     "Supabase schema with Row Level Security, and a synthetic dataset disclosed in full",
     "Version-pinned dependencies, CI running pytest plus web build and lint on every push",
@@ -643,14 +747,14 @@ function card(slide, x, y, w, h, opts = {}) {
       options: { bullet: true, breakLine: i < built.length - 1, paraSpaceAfter: 7 },
     })),
     {
-      x: M, y: 4.66, w: CW, h: 2.0,
-      fontFace: FONT_B, fontSize: 13.5, color: C.ink, isTextBox: true, margin: 0,
+      x: M, y: 4.66, w: CW, h: 2.5,
+      fontFace: FONT_B, fontSize: 13, color: C.ink, isTextBox: true, margin: 0,
     }
   );
 }
 
 // ===========================================================================
-// 11 — Business model & path to pilot
+// 12 — Business model & path to pilot
 // ===========================================================================
 {
   const s = lightSlide("Sustainability", "Who pays, and what happens next.", { tint: true });
@@ -717,7 +821,7 @@ function card(slide, x, y, w, h, opts = {}) {
 }
 
 // ===========================================================================
-// 12 — What we are not claiming
+// 13 — What we are not claiming
 // ===========================================================================
 {
   const s = lightSlide("Honesty", "What we are not claiming.");
@@ -761,7 +865,7 @@ function card(slide, x, y, w, h, opts = {}) {
 }
 
 // ===========================================================================
-// 13 — Ask
+// 14 — Ask
 // ===========================================================================
 {
   const s = darkSlide();
