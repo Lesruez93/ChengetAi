@@ -73,8 +73,7 @@ architecture, deployment and impact. This is the content plan, not the deck itse
 - See `docs/risk_compliance_checklist.md` and `docs/dataset_statement.md`
 
 ## Slide 10 — Team
-- **Lester Rusike** — Lead Innovator (product, backend/AI engineering, architecture, compliance)
-- **Agnes Goora** — Frontend Developer (Flutter + web UI)
+- **Lester Rusike** — Sole developer (product, backend/AI engineering, architecture, Flutter + web UI, compliance)
 - Skills gaps and how they'll be filled: the roadmap
 
 ## Slide 11 — Impact & ask

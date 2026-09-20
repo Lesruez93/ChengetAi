@@ -82,6 +82,11 @@ const APK_DOWNLOAD_URL =
   "https://github.com/Lesruez93/ChengetAi/releases/download/v0.1.0-mvp/app-release.apk";
 
 const MOBILE_SCREENSHOTS = [
+  { src: "/screenshots/mobile-check-message.png", alt: "Check Message verdict screen", label: "Check Message" },
+  { src: "/screenshots/mobile-get-help.png", alt: "Get Help screen", label: "Get Help" },
+  { src: "/screenshots/mobile-call-guard-setup.png", alt: "Call Guard setup screen", label: "Call Guard" },
+  { src: "/screenshots/mobile-call-guard-events.png", alt: "Call Guard screened events screen", label: "Screened events" },
+  { src: "/screenshots/mobile-scam-alerts.png", alt: "Scam Alerts screen", label: "Scam Alerts" },
   { src: "/screenshots/mobile-number-lookup.png", alt: "Number Lookup screen", label: "Number Lookup" },
 ];
 
@@ -378,9 +383,9 @@ export default async function LandingPage() {
 
           <h3 className="mt-14 text-lg font-semibold text-foreground">Mobile app</h3>
           <p className="mt-2 max-w-3xl text-sm text-neutral">
-            This capture predates the current build and does not yet show the Get Help tab, the
-            country switcher, or cross-border reach on a number. Refreshed captures follow the next
-            Android build.
+            Check Message, Get Help, Call Guard and Scam Alerts below are from the current build. The
+            Number Lookup capture is older and does not yet show the country switcher or cross-border
+            reach on a number — a refreshed capture follows the next Android build.
           </p>
           <div className="mt-4 flex flex-wrap gap-6">
             {MOBILE_SCREENSHOTS.map((shot) => (
