@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+backend/.env
+backend/app/services/model_artifacts/*.joblib
+
+# Flutter / Dart
+app/.dart_tool/
+app/.flutter-plugin-dependencies
+app/build/
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/ios/Pods/
+app/ios/.symlinks/
+app/android/.gradle/
+app/android/local.properties
+app/*.iml
+
+# General
+.DS_Store
+*.log
+.env
+.env.local
+node_modules/
+proposal/

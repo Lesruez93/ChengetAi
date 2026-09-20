@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/*
+ * Brand palette, matching app/lib/core/theme.dart so the Flutter app, the
+ * landing page, and the admin dashboard read as one product. Teal/green is
+ * the reassuring "trust & safety" primary; red/amber/green are reserved for
+ * genuine risk signals (verdicts, risk levels, hotspot levels) so they keep
+ * their meaning instead of being ambient decoration.
+ */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --surface-tint: #f4faf8;
+
+  --brand-primary: #0f6b5c;
+  --brand-secondary: #14a085;
+
+  --danger: #c62828;
+  --warning: #b8860b;
+  --safe: #2e7d32;
+  --neutral: #64748b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface-tint: var(--surface-tint);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-safe: var(--safe);
+  --color-neutral: var(--neutral);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0f0d;
+    --foreground: #e7f3ef;
+    --surface-tint: #101917;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}

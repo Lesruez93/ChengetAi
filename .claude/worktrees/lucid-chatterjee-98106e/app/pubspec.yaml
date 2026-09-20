@@ -1,0 +1,58 @@
+name: chengetai
+description: >
+  ChengetAI — scam detection, safe community reporting, and country-specific
+  support pathways across African mobile-money markets. Message classification,
+  number reputation lookup, trending/hotspot feeds, and the Agent Fraud
+  Sentinel B2B CSV analyzer.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+# NOTE: platform folders (android/, ios/) are intentionally not included in
+# this checkout. Scaffold them locally with:
+#   cd app && flutter create . --org com.chengetai --project-name chengetai
+# This regenerates android/ + ios/ using whatever Flutter/AGP/Kotlin
+# versions are installed locally, without touching lib/ or pubspec.yaml.
+# After scaffolding, confirm android/app/src/main/AndroidManifest.xml has
+# the INTERNET permission (required for every feature in this app, since
+# they all talk to the FastAPI backend):
+#   <uses-permission android:name="android.permission.INTERNET" />
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Navigation: declarative routing + a persistent bottom-nav shell
+  # (StatefulShellRoute) for the home tabs.
+  go_router: ^14.6.1
+
+  # Backend HTTP calls (classify / numbers / reports / feed / sentinel).
+  http: ^1.2.2
+
+  # CSV file selection for the Agent Fraud Sentinel upload flow.
+  file_picker: ^10.3.4
+
+  # Bar chart for the sentinel "flags by reason" summary.
+  fl_chart: ^0.69.0
+
+  # Date/relative-time formatting (feed timestamps, report history).
+  intl: ^0.19.0
+
+  # Local cache of the last few number lookups, so a basic "is this number
+  # flagged?" check still works offline (see docs/architecture.md,
+  # "Offline behaviour").
+  shared_preferences: ^2.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/branding/

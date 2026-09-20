@@ -1,0 +1,315 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../../core/api_client.dart';
+import '../../core/constants.dart';
+import '../../core/country_preference.dart';
+import '../../core/models/feed_models.dart';
+import '../../core/theme.dart';
+import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/country_menu_button.dart';
+import '../../shared/widgets/empty_state.dart';
+import '../../shared/widgets/risk_chip.dart';
+import '../../shared/widgets/stat_tile.dart';
+import 'widgets/hotspot_card.dart';
+
+/// Alerts / trending feed screen.
+///
+/// Two tabs:
+///  - "Alerts": editorial entries from `GET /feed`, scoped to the selected
+///    market but always including cross-market advisories.
+///  - "Trending": live weighted-rules ranking, the within-country hotspot map,
+///    and the cross-country rollup, from `GET /feed/trending`.
+///
+/// Hotspots render as a styled list rather than an SVG map: a list is legible
+/// on a low-end device, needs no per-country map asset (seven and counting),
+/// and is readable by a screen reader, which a coloured polygon is not.
+///
+/// Both tabs reload when the user switches country, since neither answer is
+/// meaningful in the wrong market.
+class FeedScreen extends StatefulWidget {
+  const FeedScreen({required this.apiClient, super.key});
+
+  final ApiClient apiClient;
+
+  @override
+  State<FeedScreen> createState() => _FeedScreenState();
+}
+
+class _FeedScreenState extends State<FeedScreen> {
+  late Future<List<FeedItem>> _feedFuture;
+  late Future<TrendingFeedResponse> _trendingFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedFuture = widget.apiClient.getFeed(country: CountryPreference.code);
+    _trendingFuture = widget.apiClient.getTrendingFeed(country: CountryPreference.code);
+    CountryPreference.codeNotifier.addListener(_onCountryChanged);
+  }
+
+  @override
+  void dispose() {
+    CountryPreference.codeNotifier.removeListener(_onCountryChanged);
+    super.dispose();
+  }
+
+  void _onCountryChanged() {
+    if (!mounted) return;
+    setState(() {
+      _feedFuture = widget.apiClient.getFeed(country: CountryPreference.code);
+      _trendingFuture = widget.apiClient.getTrendingFeed(country: CountryPreference.code);
+    });
+  }
+
+  Future<void> _refreshFeed() async {
+    setState(() => _feedFuture = widget.apiClient.getFeed(country: CountryPreference.code));
+    await _feedFuture;
+  }
+
+  Future<void> _refreshTrending() async {
+    setState(() =>
+        _trendingFuture = widget.apiClient.getTrendingFeed(country: CountryPreference.code));
+    await _trendingFuture;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: const AppLogo(),
+          title: const Text('Scam Alerts'),
+          actions: const <Widget>[CountryMenuButton()],
+          bottom: const TabBar(
+            indicatorColor: Colors.white,
+            tabs: <Widget>[
+              Tab(text: 'Alerts'),
+              Tab(text: 'Trending & Hotspots'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: <Widget>[
+            RefreshIndicator(onRefresh: _refreshFeed, child: _AlertsTab(future: _feedFuture)),
+            RefreshIndicator(onRefresh: _refreshTrending, child: _TrendingTab(future: _trendingFuture)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AlertsTab extends StatelessWidget {
+  const _AlertsTab({required this.future});
+
+  final Future<List<FeedItem>> future;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<FeedItem>>(
+      future: future,
+      builder: (BuildContext context, AsyncSnapshot<List<FeedItem>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return ListView(
+            children: <Widget>[
+              EmptyState(
+                icon: Icons.cloud_off,
+                message: 'Could not load alerts.\n${snapshot.error}',
+              ),
+            ],
+          );
+        }
+        final List<FeedItem> items = snapshot.data ?? const <FeedItem>[];
+        if (items.isEmpty) {
+          return ListView(
+            children: const <Widget>[EmptyState(message: 'No trending scam alerts right now.')],
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: items.length,
+          itemBuilder: (BuildContext context, int index) => _FeedItemCard(item: items[index]),
+        );
+      },
+    );
+  }
+}
+
+class _FeedItemCard extends StatelessWidget {
+  const _FeedItemCard({required this.item});
+
+  final FeedItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 8),
+            Text(item.summary, style: TextStyle(fontSize: 13.5, color: Colors.grey.shade800, height: 1.35)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                RiskChip(label: humanizeCategory(item.category), icon: Icons.category_outlined),
+                if (item.country == null)
+                  const RiskChip(
+                    label: 'All markets',
+                    icon: Icons.public,
+                    color: Colors.blueGrey,
+                  )
+                else
+                  RiskChip(
+                    label: item.region ?? CountryRegistry.byCode(item.country!).name,
+                    icon: Icons.place_outlined,
+                    color: Colors.blueGrey,
+                  ),
+                RiskChip(
+                  label: _relativeTime(item.createdAt),
+                  icon: Icons.schedule,
+                  color: Colors.grey.shade700,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrendingTab extends StatelessWidget {
+  const _TrendingTab({required this.future});
+
+  final Future<TrendingFeedResponse> future;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<TrendingFeedResponse>(
+      future: future,
+      builder: (BuildContext context, AsyncSnapshot<TrendingFeedResponse> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return ListView(
+            children: <Widget>[
+              EmptyState(icon: Icons.cloud_off, message: 'Could not load trending data.\n${snapshot.error}'),
+            ],
+          );
+        }
+
+        final TrendingFeedResponse data = snapshot.data!;
+        // The backend already sorts by severity; re-sorting here keeps the
+        // order stable if a cached or older response arrives unsorted.
+        const Map<String, int> severity = <String, int>{'red': 0, 'yellow': 1, 'green': 2};
+        final List<RegionHotspot> sortedHotspots = List<RegionHotspot>.from(data.hotspots)
+          ..sort((RegionHotspot a, RegionHotspot b) {
+            final int levelCompare = (severity[a.level] ?? 3).compareTo(severity[b.level] ?? 3);
+            if (levelCompare != 0) return levelCompare;
+            return b.reportCount.compareTo(a.reportCount);
+          });
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: <Widget>[
+            _SectionHeader(
+              title: 'Trending This Week',
+              subtitle: 'Window: last ${data.windowDays} days',
+            ),
+            const SizedBox(height: 10),
+            if (data.trendingCategories.isEmpty)
+              const EmptyState(message: 'No trending categories in this window.')
+            else
+              SizedBox(
+                height: 104,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: data.trendingCategories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (BuildContext context, int index) {
+                    final TrendingCategory category = data.trendingCategories[index];
+                    return SizedBox(
+                      width: 150,
+                      child: StatTile(
+                        value: category.score.toStringAsFixed(1),
+                        label: '${category.label} · ${category.reportCount} reports',
+                        icon: Icons.trending_up,
+                        color: AppColors.brandPrimary,
+                        dense: true,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                data.methodNote,
+                style: TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: Colors.grey.shade600),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (sortedHotspots.isNotEmpty) ...<Widget>[
+              _SectionHeader(
+                // "Province", "Region" or "Zone" — whatever this market calls
+                // its own first-level unit, supplied by the API.
+                title: '${data.regionLabel ?? 'Region'} Hotspots',
+                subtitle: 'Green = quiet, red = active scam activity',
+              ),
+              const SizedBox(height: 10),
+              ...sortedHotspots.map((RegionHotspot h) => HotspotCard.region(h)),
+              const SizedBox(height: 16),
+            ],
+            const _SectionHeader(
+              title: 'Across all markets',
+              subtitle: 'Where this week\'s reports are coming from',
+            ),
+            const SizedBox(height: 10),
+            ...data.countryHotspots.map((CountryHotspot h) => HotspotCard.country(h)),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, this.subtitle});
+
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        if (subtitle != null)
+          Text(subtitle!, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+      ],
+    );
+  }
+}
+
+String _relativeTime(DateTime dateTime) {
+  final Duration diff = DateTime.now().toUtc().difference(dateTime.toUtc());
+  if (diff.inMinutes < 1) return 'just now';
+  if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+  if (diff.inDays < 1) return '${diff.inHours}h ago';
+  if (diff.inDays < 7) return '${diff.inDays}d ago';
+  return DateFormat('d MMM').format(dateTime.toLocal());
+}
