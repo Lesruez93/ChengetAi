@@ -7,7 +7,7 @@ import { Suspense, useState } from "react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [password, setPassword] = useState(process.env.NEXT_PUBLIC_ADMIN_DEMO_PASSWORD ?? "");
+  const [password, setPassword] = useState(process.env.NEXT_PUBLIC_ADMIN_DEMO_PASSWORD ?? "admin");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
