@@ -816,13 +816,9 @@ function card(slide, x, y, w, h, opts = {}) {
     x: M, y: 5.26, w: 5.2, h: 0.32,
     fontFace: FONT_H, fontSize: 17, bold: true, color: C.white, isTextBox: true, margin: 0,
   });
-  s.addText("Product, backend and AI engineering, architecture, compliance", {
-    x: M, y: 5.6, w: 5.6, h: 0.3,
+  s.addText("Sole developer — product, backend and AI engineering, architecture, Flutter + web UI, compliance", {
+    x: M, y: 5.6, w: 6.2, h: 0.3,
     fontFace: FONT_B, fontSize: 12, color: "A8CCC3", isTextBox: true, margin: 0,
-  });
-  s.addText("Frontend contribution: Agnes Goora (Flutter and web UI)", {
-    x: M, y: 5.92, w: 6.2, h: 0.3,
-    fontFace: FONT_B, fontSize: 11.5, italic: true, color: "8FB5AC", isTextBox: true, margin: 0,
   });
 
   s.addText("chengetai.vercel.app", {

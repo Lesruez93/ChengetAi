@@ -82,12 +82,42 @@ const APK_DOWNLOAD_URL =
   "https://github.com/Lesruez93/ChengetAi/releases/download/v0.1.0-mvp/app-release.apk";
 
 const MOBILE_SCREENSHOTS = [
-  { src: "/screenshots/mobile-check-message.png", alt: "Check Message verdict screen", label: "Check Message" },
-  { src: "/screenshots/mobile-get-help.png", alt: "Get Help screen", label: "Get Help" },
-  { src: "/screenshots/mobile-call-guard-setup.png", alt: "Call Guard setup screen", label: "Call Guard" },
-  { src: "/screenshots/mobile-call-guard-events.png", alt: "Call Guard screened events screen", label: "Screened events" },
-  { src: "/screenshots/mobile-scam-alerts.png", alt: "Scam Alerts screen", label: "Scam Alerts" },
-  { src: "/screenshots/mobile-number-lookup.png", alt: "Number Lookup screen", label: "Number Lookup" },
+  {
+    src: "/screenshots/mobile-check-message.png",
+    alt: "Check Message verdict screen",
+    label: "Check Message",
+    caption: "A pasted message scored Likely Scam at 75% confidence, with the flagged phrase and next steps shown inline.",
+  },
+  {
+    src: "/screenshots/mobile-get-help.png",
+    alt: "Get Help screen",
+    label: "Get Help",
+    caption: "The ordered escalation ladder for Kenya: wallet provider first, then regulators — ranked by how fast each stops the loss.",
+  },
+  {
+    src: "/screenshots/mobile-call-guard-setup.png",
+    alt: "Call Guard setup screen",
+    label: "Call Guard",
+    caption: "Call Guard on, 3 of 3 channels active — calls, SMS and warning notifications are each opt-in per channel.",
+  },
+  {
+    src: "/screenshots/mobile-call-guard-events.png",
+    alt: "Call Guard screened events screen",
+    label: "Screened events",
+    caption: "Every screened call and text, including a HIGH risk WhatsApp sender flagged from 4 corroborating reports.",
+  },
+  {
+    src: "/screenshots/mobile-scam-alerts.png",
+    alt: "Scam Alerts screen",
+    label: "Scam Alerts",
+    caption: "Trending scam patterns across markets — wrong-deposit reversals and SIM re-registration scripts reported within the last day.",
+  },
+  {
+    src: "/screenshots/mobile-number-lookup.png",
+    alt: "Number Lookup screen",
+    label: "Number Lookup",
+    caption: "Look up a number's report history before you call back, reply, or send money.",
+  },
 ];
 
 const ADMIN_SCREENSHOTS = [
@@ -394,7 +424,7 @@ export default async function LandingPage() {
                 href={shot.src}
                 target="_blank"
                 rel="noreferrer"
-                className="group block w-[180px] shrink-0 overflow-hidden rounded-2xl border border-black/5 shadow-sm transition hover:border-brand-primary dark:border-white/10"
+                className="group block w-[208px] shrink-0 overflow-hidden rounded-2xl border border-black/5 shadow-sm transition hover:border-brand-primary dark:border-white/10"
               >
                 <Image
                   src={shot.src}
@@ -403,9 +433,10 @@ export default async function LandingPage() {
                   height={2412}
                   className="w-full transition group-hover:opacity-90"
                 />
-                <p className="border-t border-black/5 bg-white px-3 py-2 text-xs font-medium text-neutral dark:border-white/10 dark:bg-white/5">
-                  {shot.label}
-                </p>
+                <div className="border-t border-black/5 bg-white px-3 py-2.5 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-xs font-medium text-foreground">{shot.label}</p>
+                  <p className="mt-1 text-[11px] leading-snug text-neutral">{shot.caption}</p>
+                </div>
               </a>
             ))}
           </div>
