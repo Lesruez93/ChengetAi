@@ -1,9 +1,10 @@
 """Message classification: two pluggable strategies behind one interface.
 
 - `BaselineClassifier`: TF-IDF + logistic regression trained on
-  sample_data/scam_corpus.jsonl. Cheap, offline, fully explainable via learned
-  feature weights — but only as good as its (synthetic, small) training corpus
-  and blind to scam patterns it has never seen.
+  app/data/scam_corpus.jsonl (vendored from sample_data/scam_corpus.jsonl so
+  it ships inside the Docker image). Cheap, offline, fully explainable via
+  learned feature weights — but only as good as its (synthetic, small)
+  training corpus and blind to scam patterns it has never seen.
 - `LLMClassifier`: Anthropic API with a few-shot prompt grounded in the
   caller's market. Handles novel phrasing and reasoning about intent rather
   than surface keywords, at the cost of a network call and per-request $.
@@ -42,7 +43,12 @@ from app.services.countries import Country, get_country
 from app.services.support import UNIVERSAL_FIRST_STEPS
 from app.services.taxonomy import get_category
 
-CORPUS_PATH = Path(__file__).resolve().parents[3] / "sample_data" / "scam_corpus.jsonl"
+# Vendored inside app/ (not read from the repo-root sample_data/ directory)
+# so the file ships with the app package regardless of the Docker build
+# context — the production image only ever COPYs app/, not the repo root.
+# Keep this in sync with sample_data/scam_corpus.jsonl; generate_scam_corpus.py
+# writes both.
+CORPUS_PATH = Path(__file__).resolve().parent.parent / "data" / "scam_corpus.jsonl"
 MODEL_ARTIFACT_DIR = Path(__file__).resolve().parent / "model_artifacts"
 
 # Keyword families used both to build human-readable risk-phrase highlights and,

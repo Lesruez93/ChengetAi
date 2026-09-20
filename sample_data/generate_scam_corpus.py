@@ -411,9 +411,16 @@ def main() -> None:
             seen.add(row["text"])
             unique_rows.append(row)
 
+    contents = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in unique_rows)
     with open(args.out, "w", encoding="utf-8") as f:
-        for row in unique_rows:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        f.write(contents)
+
+    # Also vendored inside backend/app/data/ so the classifier's copy ships in
+    # the Docker image (the production build context is backend/, which does
+    # not include this sample_data/ directory) — see backend/app/services/classifier.py.
+    vendored_path = Path(__file__).parent.parent / "backend" / "app" / "data" / "scam_corpus.jsonl"
+    if vendored_path.parent.is_dir():
+        vendored_path.write_text(contents, encoding="utf-8")
 
     n_scam = sum(1 for r in unique_rows if r["label"] == "scam")
     n_legit = sum(1 for r in unique_rows if r["label"] == "legit")
@@ -421,6 +428,8 @@ def main() -> None:
     for r in unique_rows:
         by_country[r["country"]] = by_country.get(r["country"], 0) + 1
     print(f"Wrote {len(unique_rows)} messages to {args.out} ({n_scam} scam, {n_legit} legit)")
+    if vendored_path.parent.is_dir():
+        print(f"Also updated vendored copy at {vendored_path}")
     print("By market: " + ", ".join(f"{k}={v}" for k, v in sorted(by_country.items())))
 
 
