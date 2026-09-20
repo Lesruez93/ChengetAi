@@ -46,7 +46,7 @@ class InMemoryStore:
             self._seed()
 
     def _seed(self) -> None:
-        """Seed across several markets, not one.
+        """Seed every supported market, not one.
 
         A demo seeded only with Zimbabwean reports would make every
         cross-country view look broken — the country hotspot map would show one
@@ -54,6 +54,24 @@ class InMemoryStore:
         would see an empty product. Spreading the seed shows the regional shape
         the product is actually for, and exercises the country-scoping paths
         that a single-country seed never touches.
+
+        Every code in `services/countries.py` gets reports here, and
+        `tests/test_store_seed.py` enforces that: a market that ships with a
+        country registry entry, support contacts and a picker entry but no data
+        behind them reads, to anyone opening it, as a broken product rather
+        than a quiet one.
+
+        Volume still varies by market deliberately. A flat seed would imply
+        seven equally-mature markets, which is not the deployment story
+        (docs/deployment_plan.md sequences markets rather than launching them
+        together); the gradient also gives the hotspot map something other than
+        a uniform block to render.
+
+        Two properties here are load-bearing for paths nothing else exercises:
+        at least one number per major market clears
+        NUMBER_PUBLIC_FLAG_THRESHOLD, and one number is reported from two
+        countries, so `upsert_number_reputation`'s cross-border `countries`
+        tally and "home market" pick are covered by seeded data.
         """
         now = datetime.now(timezone.utc)
         seed_reports = [
@@ -73,17 +91,45 @@ class InMemoryStore:
             Report(msisdn="+263714567890", country="ZW", category="faith_seed", region="Manicaland",
                    message_excerpt="Sow a seed today...", reporter_trust=1.1,
                    created_at=now - timedelta(hours=20)),
-            # Kenya — M-PESA reversal and a SIM swap wave
+            Report(msisdn="+263733445566", country="ZW", category="otp_phishing", region="Midlands",
+                   message_excerpt="EcoCash security check: confirm the code sent to you",
+                   reporter_trust=1.2, created_at=now - timedelta(hours=26)),
+            # Zimbabwe — the fixture the call-screening flow is demoed against.
+            # Three distinct categories, so `risk_level_for` returns "high" on
+            # category diversity rather than volume, and four reports clears
+            # NUMBER_PUBLIC_FLAG_THRESHOLD. Both matter: the incoming-call
+            # banner only warns on a publicly flagged number, so a fixture
+            # sitting one report below the threshold would show nothing and
+            # look like a broken integration.
+            Report(msisdn="+263710423555", country="ZW", category="mobile_money_reversal",
+                   region="Harare", message_excerpt="Wrong deposit, reverse to [number] urgently",
+                   reporter_trust=1.4, created_at=now - timedelta(hours=3)),
+            Report(msisdn="+263710423555", country="ZW", category="otp_phishing", region="Harare",
+                   message_excerpt="EcoCash agent here, read me the code to reverse it",
+                   reporter_trust=1.3, created_at=now - timedelta(hours=11)),
+            Report(msisdn="+263710423555", country="ZW", category="impersonation",
+                   region="Bulawayo", message_excerpt="Calling from the EcoCash fraud desk",
+                   reporter_trust=1.2, created_at=now - timedelta(hours=19)),
+            Report(msisdn="+263710423555", country="ZW", category="mobile_money_reversal",
+                   region="Harare", message_excerpt="I will send police if you don't reverse it",
+                   reporter_trust=1.0, created_at=now - timedelta(days=1)),
+            # Kenya — M-PESA reversal spreading beyond Nairobi, plus a SIM swap wave
             Report(msisdn="+254712345678", country="KE", category="mobile_money_reversal",
                    region="Nairobi", message_excerpt="I sent you money by mistake, please send it back",
                    reporter_trust=1.3, created_at=now - timedelta(hours=4)),
             Report(msisdn="+254712345678", country="KE", category="mobile_money_reversal",
                    region="Nairobi", message_excerpt="Please return the M-PESA sent in error",
                    reporter_trust=1.0, created_at=now - timedelta(hours=9)),
+            Report(msisdn="+254712345678", country="KE", category="mobile_money_reversal",
+                   region="Coast", message_excerpt="Reverse the M-PESA to [number], wrong recipient",
+                   reporter_trust=1.1, created_at=now - timedelta(hours=16)),
             Report(msisdn="+254733221100", country="KE", category="sim_swap", region="Central",
                    message_excerpt="Your line will be deactivated, confirm your ID to re-register",
                    reporter_trust=1.0, created_at=now - timedelta(days=2)),
-            # Nigeria — BVN phishing, and a number also active in Ghana
+            Report(msisdn="+254110998877", country="KE", category="fake_investment",
+                   region="Nairobi", message_excerpt="Guaranteed 40% weekly returns, slots closing",
+                   reporter_trust=0.9, created_at=now - timedelta(hours=21)),
+            # Nigeria — BVN phishing from a number that is also working Ghana
             Report(msisdn="+2348031234567", country="NG", category="otp_phishing", region="Lagos",
                    message_excerpt="Your BVN is due for revalidation, click [link]",
                    reporter_trust=1.5, created_at=now - timedelta(hours=3)),
@@ -93,20 +139,63 @@ class InMemoryStore:
             Report(msisdn="+2348031234567", country="NG", category="fake_investment",
                    region="FCT Abuja", message_excerpt="Double your capital in 24hrs, last slots",
                    reporter_trust=0.9, created_at=now - timedelta(days=1)),
-            # South Africa — grant scam, the dominant local pattern
+            Report(msisdn="+2349021112233", country="NG", category="fake_loan_aid",
+                   region="South West", message_excerpt="Loan approved, pay [redacted] insurance fee",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=33)),
+            # South Africa — grant scams, the dominant local pattern, plus SIM swap
             Report(msisdn="+27821234567", country="ZA", category="fake_loan_aid", region="Gauteng",
                    message_excerpt="Your grant application is approved, pay [redacted] to release",
                    reporter_trust=1.1, created_at=now - timedelta(hours=14)),
             Report(msisdn="+27821234567", country="ZA", category="fake_loan_aid",
                    region="KwaZulu-Natal", message_excerpt="Grant pending, activation fee required",
                    reporter_trust=1.0, created_at=now - timedelta(days=2)),
-            # Uganda and Ghana — thinner, so the map shows a realistic gradient
+            Report(msisdn="+27821234567", country="ZA", category="fake_loan_aid",
+                   region="Eastern Cape", message_excerpt="Final notice: clearance fee to release grant",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=40)),
+            Report(msisdn="+27761122334", country="ZA", category="sim_swap", region="Western Cape",
+                   message_excerpt="SIM upgrade required, reply with the code to keep your line",
+                   reporter_trust=1.1, created_at=now - timedelta(hours=29)),
+            # Uganda — MoMo reversal and recruitment fees
             Report(msisdn="+256772345678", country="UG", category="fake_job", region="Central",
                    message_excerpt="Pay processing fee to confirm your placement",
                    reporter_trust=1.0, created_at=now - timedelta(hours=30)),
+            Report(msisdn="+256701234567", country="UG", category="mobile_money_reversal",
+                   region="Western", message_excerpt="MTN MoMo sent to you in error, please send back",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=35)),
+            Report(msisdn="+256752233445", country="UG", category="otp_phishing", region="Eastern",
+                   message_excerpt="Airtel Money verification: share the PIN sent to [number]",
+                   reporter_trust=1.1, created_at=now - timedelta(hours=44)),
+            # Ghana — MoMo reversal, and the Nigerian number reported here too
             Report(msisdn="+233241234567", country="GH", category="mobile_money_reversal",
                    region="Greater Accra", message_excerpt="MoMo sent by mistake, kindly reverse",
                    reporter_trust=1.0, created_at=now - timedelta(hours=18)),
+            Report(msisdn="+233241234567", country="GH", category="mobile_money_reversal",
+                   region="Ashanti", message_excerpt="Please return the MoMo, it was the wrong number",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=38)),
+            Report(msisdn="+233501122334", country="GH", category="impersonation",
+                   region="Greater Accra",
+                   message_excerpt="MTN support here, your wallet is locked, call [number]",
+                   reporter_trust=1.2, created_at=now - timedelta(hours=27)),
+            # The same Nigerian line, worked across the border — the only seeded
+            # number whose reputation spans two markets.
+            Report(msisdn="+2348031234567", country="GH", category="otp_phishing",
+                   region="Greater Accra",
+                   message_excerpt="Bank verification required, click [link] to confirm",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=12)),
+            # Tanzania — reversal script in Dar, spreading up the coast
+            Report(msisdn="+255754112233", country="TZ", category="mobile_money_reversal",
+                   region="Dar es Salaam",
+                   message_excerpt="M-Pesa sent to you by accident, please reverse to [number]",
+                   reporter_trust=1.2, created_at=now - timedelta(hours=7)),
+            Report(msisdn="+255754112233", country="TZ", category="mobile_money_reversal",
+                   region="Coastal", message_excerpt="Wrong transfer, kindly send it back today",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=23)),
+            Report(msisdn="+255682233445", country="TZ", category="fake_investment",
+                   region="Northern", message_excerpt="Forex platform, capital doubled in 48hrs",
+                   reporter_trust=0.9, created_at=now - timedelta(hours=31)),
+            Report(msisdn="+255715566778", country="TZ", category="sim_swap", region="Lake",
+                   message_excerpt="Line registration expiring, confirm your ID to avoid blocking",
+                   reporter_trust=1.0, created_at=now - timedelta(days=2)),
         ]
         self._reports.extend(seed_reports)
 
@@ -140,6 +229,36 @@ class InMemoryStore:
                               "for remote jobs that do not exist. No legitimate employer charges "
                               "you to be hired.",
                      country=None, created_at=now - timedelta(days=3)),
+            FeedItem(title="Reversal requests spreading from Dar es Salaam along the coast",
+                     category="mobile_money_reversal",
+                     summary="Reports describe an M-Pesa or Mixx notice followed by a call "
+                              "pressuring you to send the money back. Check the balance in the "
+                              "wallet menu before returning anything.",
+                     country="TZ", region="Dar es Salaam", created_at=now - timedelta(hours=11)),
+            FeedItem(title="Callers posing as MoMo support in Greater Accra",
+                     category="impersonation",
+                     summary="Callers claiming to be MTN or Telecel support say your wallet is "
+                              "locked and ask you to call back on a number they supply. Use the "
+                              "short code printed by your provider instead.",
+                     country="GH", region="Greater Accra", created_at=now - timedelta(hours=16)),
+            FeedItem(title="Placement-fee job scams reported across Uganda",
+                     category="fake_job",
+                     summary="Messages offering a confirmed placement ask for a processing fee by "
+                              "MoMo before any interview. A fee charged before work is the scam, "
+                              "whatever employer is named.",
+                     country="UG", created_at=now - timedelta(hours=34)),
+            FeedItem(title="Callers posing as the EcoCash fraud desk in Harare",
+                     category="impersonation",
+                     summary="Callers claiming to be an EcoCash agent or fraud desk press you to "
+                              "read back a code to 'reverse' a deposit you never received. No "
+                              "agent ever needs your code or PIN.",
+                     country="ZW", region="Harare", created_at=now - timedelta(hours=9)),
+            FeedItem(title="SIM re-registration and upgrade pretexts in South Africa",
+                     category="sim_swap",
+                     summary="A 'SIM upgrade' or re-registration request that asks for a code is "
+                              "an attempt to take over the number your banking OTPs arrive on. "
+                              "If your line goes dead, treat it as urgent.",
+                     country="ZA", region="Western Cape", created_at=now - timedelta(hours=30)),
         ])
 
     # -- reports --

@@ -2,6 +2,7 @@ import 'package:chengetai/core/constants.dart';
 import 'package:chengetai/core/models/classify_models.dart';
 import 'package:chengetai/core/models/feed_models.dart';
 import 'package:chengetai/core/models/reputation_models.dart';
+import 'package:chengetai/core/models/screened_event.dart';
 import 'package:chengetai/core/models/support_models.dart';
 import 'package:chengetai/main.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -207,6 +208,176 @@ void main() {
       // An unverified contact must survive parsing as unverified, not be
       // silently upgraded — the UI depends on that distinction.
       expect(pathway.channelsOfKind('wallet').single.verified, isFalse);
+    });
+
+    test('ScreenedEvent parses a warned call from the Kotlin screening log', () {
+      final ScreenedEvent event = ScreenedEvent.fromJson(<String, dynamic>{
+        'channel': 'call',
+        'sender': '+263710423555',
+        'screened_at_millis': 1758268800000,
+        'outcome': 'warned',
+        'risk_level': 'high',
+        'report_count': 4,
+        'top_category': 'mobile_money_reversal',
+        'was_warned': true,
+        'was_simulated': true,
+      });
+      expect(event.sender, '+263710423555');
+      expect(event.channel, ThreatChannel.call);
+      expect(event.outcome, ScreeningOutcome.warned);
+      expect(event.riskLevel, 'high');
+      expect(event.reportCount, 4);
+      expect(event.wasSimulated, isTrue);
+    });
+
+    test('ScreenedEvent keeps an SMS classifier verdict separate from reputation', () {
+      // The two signals catch different attacks: a brand-new number has no
+      // report history but sends the known script. Collapsing them would hide
+      // exactly the case SMS screening exists to catch.
+      final ScreenedEvent event = ScreenedEvent.fromJson(<String, dynamic>{
+        'channel': 'sms',
+        'sender': '+263788000222',
+        'screened_at_millis': 1758268800000,
+        'outcome': 'warned',
+        'risk_level': 'unknown',
+        'report_count': 0,
+        'message_verdict': 'scam',
+        'was_warned': true,
+        'was_simulated': false,
+      });
+      expect(event.channel, ThreatChannel.sms);
+      expect(event.messageVerdict, 'scam');
+      expect(event.reportCount, 0);
+      expect(event.outcome, ScreeningOutcome.warned);
+    });
+
+    test('ScreenedEvent keeps a blocked warning distinct from a clean event', () {
+      // These two both show the user nothing while the phone rings, so if
+      // parsing collapsed them the history could not explain the difference
+      // between "you are protected" and "notifications are off".
+      final ScreenedEvent blocked = ScreenedEvent.fromJson(<String, dynamic>{
+        'channel': 'call',
+        'sender': '+263710423555',
+        'screened_at_millis': 1758268800000,
+        'outcome': 'flagged_notification_blocked',
+        'was_warned': false,
+        'was_simulated': false,
+      });
+      final ScreenedEvent clean = ScreenedEvent.fromJson(<String, dynamic>{
+        'channel': 'call',
+        'sender': '+263712000111',
+        'screened_at_millis': 1758268800000,
+        'outcome': 'clean',
+        'was_warned': false,
+        'was_simulated': false,
+      });
+      expect(blocked.outcome, ScreeningOutcome.flaggedNotificationBlocked);
+      expect(clean.outcome, ScreeningOutcome.clean);
+      expect(blocked.outcome.explanation, isNot(clean.outcome.explanation));
+      // Null risk fields must survive as null rather than defaulting to 0/low,
+      // which would render a fabricated verdict for an event never looked up.
+      expect(blocked.riskLevel, isNull);
+      expect(blocked.reportCount, isNull);
+    });
+
+    test('ScreenedEvent explains a WhatsApp call with no number to look up', () {
+      // WhatsApp shows a saved contact's name, which cannot be resolved
+      // against a reputation database keyed by MSISDN. This has to read as a
+      // known limitation rather than a failure or a clean bill of health.
+      final ScreenedEvent event = ScreenedEvent.fromJson(<String, dynamic>{
+        'channel': 'whatsapp_call',
+        'sender': 'Tendai M',
+        'screened_at_millis': 1758268800000,
+        'outcome': 'no_number_available',
+        'was_warned': false,
+        'was_simulated': false,
+      });
+      expect(event.channel, ThreatChannel.whatsappCall);
+      expect(event.outcome, ScreeningOutcome.noNumberAvailable);
+      expect(event.outcome, isNot(ScreeningOutcome.clean));
+      expect(event.outcome, isNot(ScreeningOutcome.lookupFailed));
+    });
+
+    test('ScreenedEvent degrades an unrecognised outcome instead of blanking the row', () {
+      final ScreenedEvent event = ScreenedEvent.fromJson(<String, dynamic>{
+        'channel': 'call',
+        'sender': '+263710423555',
+        'screened_at_millis': 1758268800000,
+        'outcome': 'some_future_outcome',
+        'was_warned': false,
+        'was_simulated': false,
+      });
+      expect(event.outcome, ScreeningOutcome.unknown);
+      expect(event.outcome.label, isNotEmpty);
+    });
+
+    test('CallGuardStatus needs notifications plus at least one live channel', () {
+      const CallGuardStatus callsOnly = CallGuardStatus(
+        isSupported: true,
+        hasRole: true,
+        hasSmsPermission: false,
+        hasWhatsAppAccess: false,
+        isEnabled: true,
+        hasNotificationPermission: true,
+      );
+      expect(callsOnly.isFullyActive, isTrue);
+      expect(callsOnly.activeChannelCount, 1);
+
+      // Notifications are the shared prerequisite: without them every channel
+      // detects silently, which is the same as not running at all.
+      const CallGuardStatus noNotifications = CallGuardStatus(
+        isSupported: true,
+        hasRole: true,
+        hasSmsPermission: true,
+        hasWhatsAppAccess: true,
+        isEnabled: true,
+        hasNotificationPermission: false,
+      );
+      expect(noNotifications.isFullyActive, isFalse);
+
+      // Every channel denied means nothing is being screened, however many
+      // other boxes are ticked.
+      const CallGuardStatus noChannels = CallGuardStatus(
+        isSupported: true,
+        hasRole: false,
+        hasSmsPermission: false,
+        hasWhatsAppAccess: false,
+        isEnabled: true,
+        hasNotificationPermission: true,
+      );
+      expect(noChannels.isFullyActive, isFalse);
+      expect(noChannels.activeChannelCount, 0);
+
+      expect(CallGuardStatus.unsupported.isFullyActive, isFalse);
+    });
+
+    test('CallGuard test fixtures cover both a flagged and a clean case per channel', () {
+      // These chips promise a specific outcome before the user presses them,
+      // so a missing control case would make "it warned" indistinguishable
+      // from "it warns about everything".
+      expect(
+        kCallGuardTestMessages.any((CallGuardTestMessage m) => m.expectsWarning),
+        isTrue,
+      );
+      expect(
+        kCallGuardTestMessages.any((CallGuardTestMessage m) => !m.expectsWarning),
+        isTrue,
+      );
+    });
+
+    test('Call Guard test numbers match what the backend seed actually contains', () {
+      // These chips promise a specific outcome before the user presses them,
+      // so a seed change that silently invalidates them would make the test
+      // box report a false failure.
+      final CallGuardTestNumber flagged = kCallGuardTestNumbers
+          .firstWhere((CallGuardTestNumber n) => n.msisdn == '+263710423555');
+      expect(flagged.expectsWarning, isTrue);
+      expect(
+        kCallGuardTestNumbers.any((CallGuardTestNumber n) => !n.expectsWarning),
+        isTrue,
+        reason: 'A clean control number is needed to tell "screening works" '
+            'apart from "screening warns about everything".',
+      );
     });
   });
 }

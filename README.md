@@ -202,17 +202,7 @@ python3 sample_data/generate_transactions.py
 
 ```bash
 cd app
-# Platform folders (android/, ios/) aren't checked in, so they scaffold
-# cleanly against whatever Flutter/AGP/Kotlin version you have locally:
-flutter create . --org com.chengetai --project-name chengetai
-# Then confirm android/app/src/main/AndroidManifest.xml has the INTERNET
-# permission (every screen talks to the backend):
-#   <uses-permission android:name="android.permission.INTERNET" />
 
-flutter pub get
-# Android emulator talks to the backend at http://10.0.2.2:8000 by default
-# (see app/lib/core/constants.dart) — override with --dart-define for a
-# physical device or a deployed backend URL.
 flutter run
 ```
 

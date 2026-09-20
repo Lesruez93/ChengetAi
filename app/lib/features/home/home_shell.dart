@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/call_guard.dart';
+import '../../core/country_preference.dart';
+import '../call_guard/call_guard_screen.dart';
 import '../check_message/check_message_screen.dart';
 import '../feed/feed_screen.dart';
 import '../lookup/lookup_screen.dart';
@@ -35,6 +38,7 @@ class _HomeShellState extends State<HomeShell> {
   late final List<Widget> _tabs = <Widget>[
     CheckMessageScreen(apiClient: _apiClient),
     LookupScreen(apiClient: _apiClient),
+    const CallGuardScreen(),
     SupportScreen(apiClient: _apiClient),
     FeedScreen(apiClient: _apiClient),
     SentinelScreen(apiClient: _apiClient),
@@ -43,6 +47,7 @@ class _HomeShellState extends State<HomeShell> {
   static const List<NavigationDestination> _destinations = <NavigationDestination>[
     NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Check'),
     NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: 'Lookup'),
+    NavigationDestination(icon: Icon(Icons.phone_in_talk_outlined), selectedIcon: Icon(Icons.phone_in_talk), label: 'Calls'),
     NavigationDestination(
         icon: Icon(Icons.support_agent_outlined),
         selectedIcon: Icon(Icons.support_agent),
@@ -52,7 +57,22 @@ class _HomeShellState extends State<HomeShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // The call screening service is a separate process that cannot read Dart
+    // config, so it has to be told the resolved base URL and market. Synced
+    // here rather than in main() so it also re-runs when the user changes
+    // country — a local-format caller ID resolves to a different person in
+    // each market.
+    CallGuard.syncConfig();
+    CountryPreference.codeNotifier.addListener(_syncCallGuardConfig);
+  }
+
+  void _syncCallGuardConfig() => CallGuard.syncConfig();
+
+  @override
   void dispose() {
+    CountryPreference.codeNotifier.removeListener(_syncCallGuardConfig);
     _apiClient.dispose();
     super.dispose();
   }

@@ -1,5 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Call Guard posts the "this caller is flagged" warning while the phone
+         rings. Runtime-granted from Android 13; see CallGuardChannel. Note
+         that screening itself needs no READ_PHONE_STATE: a CallScreeningService
+         holding the call screening role receives the caller ID directly, which
+         is why this app asks for the role rather than the permission. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- SMS screening. The app only reacts to the delivered broadcast: it is
+         never the default SMS handler, never reads stored messages (no
+         READ_SMS), and never stores message bodies — only the classifier's
+         verdict. Play Store review requires a declared use case for this
+         permission; "caller ID and spam" covers it on those terms. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
     <application
         android:label="chengetai"
         android:name="${applicationName}"
@@ -26,6 +38,44 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Incoming call screening. `exported` and the BIND_SCREENING_SERVICE
+             permission are both required by the platform: Telecom binds this
+             service from outside the app, and the permission ensures only the
+             system can do so. -->
+        <service
+            android:name=".callguard.ScamCallScreeningService"
+            android:permission="android.permission.BIND_SCREENING_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService"/>
+            </intent-filter>
+        </service>
+
+        <!-- SMS screening. Exported because the platform broadcasts
+             SMS_RECEIVED from outside the app; the broadcast is protected by
+             BROADCAST_SMS, which only the system holds. -->
+        <receiver
+            android:name=".callguard.ScamSmsReceiver"
+            android:permission="android.permission.BROADCAST_SMS"
+            android:exported="true">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- WhatsApp call screening, via WhatsApp's own notification. This is
+             a best-effort supplement, not a peer of call screening — see the
+             class docs in WhatsAppCallListener for why no stronger route
+             exists and what it cannot detect. -->
+        <service
+            android:name=".callguard.WhatsAppCallListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService"/>
+            </intent-filter>
+        </service>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

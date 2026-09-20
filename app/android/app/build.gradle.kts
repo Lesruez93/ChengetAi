@@ -19,7 +19,12 @@ android {
         applicationId = "com.chengetai.chengetai"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // Pinned rather than inherited from `flutter.minSdkVersion`: Call Guard
+        // needs CallScreeningService (API 24) and RoleManager (API 29), and the
+        // Kotlin in callguard/ is version-gated against 29. Letting the floor
+        // drift down with a Flutter upgrade would compile fine and silently
+        // ship a dead feature.
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

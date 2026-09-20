@@ -17,17 +17,14 @@ class AppConfig {
 
   /// Backend base URL.
   ///
-  /// Defaults to `10.0.2.2`, the special alias the Android emulator uses to
-  /// reach the host machine's `localhost` — so `uvicorn app.main:app --reload`
-  /// running on your dev machine is reachable out of the box when you run
-  /// this app in the emulator. It will NOT work on a physical device or in
-  /// release builds; override it at build/run time:
+  /// Defaults to the production Cloud Run backend.
+  /// Override at build/run time for local development:
   ///
-  ///   flutter run --dart-define=API_BASE_URL=http://192.168.1.20:8000
-  ///   flutter build apk --dart-define=API_BASE_URL=https://api.chengetai.example
+  ///   flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000   (emulator)
+  ///   flutter run --dart-define=API_BASE_URL=http://192.168.1.20:8000 (physical device)
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000',
+    defaultValue: 'https://chengetai-backend-943314742820.europe-west4.run.app',
   );
 
   static const Duration apiTimeout = Duration(seconds: 20);
@@ -237,6 +234,91 @@ const Map<String, String> kScamCategoryLabels = <String, String>{
   'faith_seed': "Faith-based 'seed' request",
   'other': 'Other',
 };
+
+/// A one-tap sample for the Call Guard "send a test call" box.
+class CallGuardTestNumber {
+  const CallGuardTestNumber({
+    required this.label,
+    required this.msisdn,
+    required this.expectsWarning,
+  });
+
+  final String label;
+  final String msisdn;
+
+  /// What the screening pipeline *should* do with this number, so the chip can
+  /// say up front whether a warning appearing is a pass or a failure.
+  final bool expectsWarning;
+}
+
+/// Numbers seeded in the backend specifically so the call-screening path can
+/// be exercised without a second handset.
+///
+/// These mirror `sample_data/seed.sql` and `InMemoryStore._seed()`. If the
+/// seed changes, these go stale and the test box starts lying about what to
+/// expect — so they are listed here next to the rest of the mirrored backend
+/// data rather than inline in the screen.
+const List<CallGuardTestNumber> kCallGuardTestNumbers = <CallGuardTestNumber>[
+  CallGuardTestNumber(
+    label: 'Flagged scammer',
+    msisdn: '+263710423555',
+    expectsWarning: true,
+  ),
+  CallGuardTestNumber(
+    label: 'Also flagged',
+    msisdn: '+263771234567',
+    expectsWarning: true,
+  ),
+  CallGuardTestNumber(
+    label: 'Clean number',
+    msisdn: '+263712000111',
+    expectsWarning: false,
+  ),
+];
+
+/// A one-tap sample message body for the Call Guard SMS test.
+class CallGuardTestMessage {
+  const CallGuardTestMessage({
+    required this.label,
+    required this.text,
+    required this.expectsWarning,
+  });
+
+  final String label;
+  final String text;
+  final bool expectsWarning;
+}
+
+/// Sample SMS bodies that exercise the classifier half of SMS screening.
+///
+/// These cover the case reputation alone cannot catch: a sender with no
+/// report history running a known script. The "safe" sample matters just as
+/// much — without it there is no way to tell working screening apart from
+/// screening that flags everything.
+const List<CallGuardTestMessage> kCallGuardTestMessages = <CallGuardTestMessage>[
+  CallGuardTestMessage(
+    label: 'Reversal script',
+    text: 'Good day, I sent \$50 to your number by mistake. Please reverse it to '
+        '0771234567 urgently, I am stranded.',
+    expectsWarning: true,
+  ),
+  CallGuardTestMessage(
+    label: 'OTP phishing',
+    text: 'EcoCash security: your account will be suspended. Reply with the 6-digit '
+        'code we just sent to confirm your identity.',
+    expectsWarning: true,
+  ),
+  // Classifies as "suspicious", not "safe" — the baseline classifier does that
+  // to most ordinary conversation. It is here precisely to prove that a
+  // "suspicious" verdict does NOT raise a warning; see `MessageVerdict
+  // .shouldWarn` in ReputationLookup.kt for the false-positive measurements
+  // behind that threshold.
+  CallGuardTestMessage(
+    label: 'Ordinary text',
+    text: 'Hie, are we still meeting at 3pm tomorrow? Let me know.',
+    expectsWarning: false,
+  ),
+];
 
 /// Turns a category key into a human-readable label, e.g.
 /// `mobile_money_reversal` -> `Wrong deposit / reversal`.

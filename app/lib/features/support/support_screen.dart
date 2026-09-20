@@ -103,8 +103,7 @@ class _SupportScreenState extends State<SupportScreen> {
           const SizedBox(height: 80),
           EmptyState(
             icon: Icons.cloud_off_outlined,
-            title: 'Could not load support contacts',
-            message: _error ?? 'Pull down to try again.',
+            message: 'Could not load support contacts. ${_error ?? 'Pull down to try again.'}',
           ),
         ],
       );

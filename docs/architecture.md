@@ -178,6 +178,74 @@ requires connectivity too, which is the most important gap of the three —
 caching it per country is the next offline item, since needing help and having
 no signal frequently coincide.
 
+## Incoming screening (Call Guard)
+
+Lookup and Check both require the user to already suspect something. Call Guard
+is the inverse: it checks calls and messages as they arrive, for the moment when
+someone has no reason to be suspicious yet.
+
+It is **Android-only, and that is a platform limit rather than a scope choice**.
+iOS forbids a third-party app from seeing an incoming caller's number or reading
+SMS; its nearest equivalents (a CallKit call-directory extension, an SMS filter
+extension) upload a *static* blocklist ahead of time and cannot do a live
+lookup. That is a different feature, not a port of this one.
+
+The screening runs in Kotlin
+(`app/android/app/src/main/kotlin/.../callguard/`), not Dart, because a call or
+text can arrive when the Flutter engine is not running at all. Warnings that
+only work while the app happens to be alive would be worse than none.
+
+Three channels, in descending order of reliability:
+
+| Channel | Mechanism | Signal quality |
+|---------|-----------|----------------|
+| Phone calls | `CallScreeningService` + call screening role | Strong — the caller's number, every time |
+| SMS | `SMS_RECEIVED` broadcast + `RECEIVE_SMS` | Strongest — sender reputation *and* message classification |
+| WhatsApp calls | Reading WhatsApp's own call notification | Weak — see below |
+
+Two rules govern the call path. **Respond to Telecom first, look up second**:
+the screening service must answer within a few seconds or it holds up the call,
+so the call is allowed immediately and the lookup happens after. And **never
+reject a call**: a false positive would silently swallow a real call from a
+recycled or maliciously reported number, with no way for the user to know. The
+product's job is to say who is calling; answering stays the user's decision.
+
+SMS is the richest channel because it carries two independent signals — who
+sent it, and what it says. They catch different attacks: a freshly bought number
+has no reputation yet but runs the same script, while a SIM-swapped line keeps
+its clean history. Either can trigger a warning. Message bodies are sent to
+`/classify` and never stored on the device; only the verdict is kept.
+
+The SMS warning threshold is **`scam` only, never `suspicious`**. The baseline
+classifier returns "suspicious" for most ordinary conversation — "Happy
+birthday! Have a great day." scores suspicious at 0.39. Measured on 5 known scam
+scripts and 7 benign messages, warning on scam-only caught 5/5 with 0 false
+positives; including "suspicious" caught the same 5 and added 6 false positives.
+A banner on nearly every personal text trains the user to dismiss it, so the one
+that matters gets swiped away with the rest.
+
+**WhatsApp screening is best-effort and should not be relied on.** WhatsApp
+calls are VoIP inside WhatsApp's own process; they never reach Telecom, and no
+Android API exposes them. Reading WhatsApp's incoming-call notification is the
+only route that exists, and it is weaker in three ways: WhatsApp usually shows a
+saved contact's *name* rather than a number, and a name cannot be looked up
+against an MSISDN-keyed database; nothing about its notification format is a
+contract, so a WhatsApp update can end the feature silently; and the permission
+it needs (`BIND_NOTIFICATION_LISTENER_SERVICE`) grants read access to every
+notification on the device, so the listener filters to WhatsApp call
+notifications as its first action.
+
+Because every one of these can fail silently, the Call Guard screen records
+**every** screened event including the ones that produced no warning, with a
+distinct outcome for each reason. An empty history while calls are coming in is
+the signal that screening has stopped — and the difference between "not
+flagged" and "flagged but notifications are off" is the difference between the
+feature working and the user being unprotected without knowing it.
+
+Play Store note: `RECEIVE_SMS` requires a declared use case at review.
+"Caller ID and spam" covers this app's usage, which is why it never becomes the
+default SMS handler, never requests `READ_SMS`, and never retains message text.
+
 ## Safe reporting
 
 The Safety, Reporting & Protection problem is not only detection. Two design
