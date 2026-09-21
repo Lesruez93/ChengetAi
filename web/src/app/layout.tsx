@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: "%s · ChengetAI",
   },
   description:
-    "AI scam-message detection, safe community reporting, and country-specific support pathways across African mobile-money markets — Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana and Tanzania.",
+    "ChengetAI warns you about known scammers on incoming calls, SMS and WhatsApp calls, and checks any message you paste in — WhatsApp, email, Facebook or Messenger. Safe community reporting and country-specific support pathways across African mobile-money markets: Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana and Tanzania.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

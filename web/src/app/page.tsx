@@ -35,8 +35,8 @@ const PROBLEMS = [
 const FLOW = [
   {
     step: "01",
-    title: "Check it",
-    body: "Paste a suspicious message. You get a verdict, the exact phrases that triggered it, and a plain-language reason — grounded in your own market’s wallets and currency, not a generic filter’s idea of spam.",
+    title: "Get warned, or check it yourself",
+    body: "Incoming calls, texts and WhatsApp calls are screened as they arrive, and you are warned when the number is a known scammer. Anything the phone can’t hand over — a WhatsApp message, an email, a Facebook or Messenger text — you paste in, and get a verdict with the exact phrases that triggered it.",
   },
   {
     step: "02",
@@ -50,10 +50,36 @@ const FLOW = [
   },
 ];
 
+// Call Guard: the three channels Android actually lets a third-party app see,
+// in descending order of reliability. This copy tracks docs/architecture.md
+// deliberately — the site must not promise more than the Kotlin screening
+// pipeline delivers, least of all on the WhatsApp path.
+const SCREENED_CHANNELS = [
+  {
+    channel: "Incoming calls",
+    signal: "Every call, with the number",
+    body: "The caller’s number is checked against the flagged-number database while the phone is still ringing. If it belongs to a known scammer, a warning tells you the risk level, how many people reported it and what for — before you answer. ChengetAI never rejects the call: a wrongly blocked call is a harm you would never see, so answering stays your decision.",
+  },
+  {
+    channel: "Incoming SMS",
+    signal: "Two independent signals",
+    body: "Every text is checked twice — who sent it, and what it says. A number bought yesterday has no reputation yet but runs the same script; a SIM-swapped line keeps its clean history. Either signal alone raises the warning. Bank and telco shortcodes can’t be looked up as numbers, so the text itself is still classified, because shortcode spoofing is one of the most common phishing routes in these markets.",
+  },
+  {
+    channel: "WhatsApp calls",
+    signal: "Best-effort — limits stated",
+    body: "WhatsApp calls never reach Android’s call screening, so ChengetAI reads WhatsApp’s own incoming-call notification instead. That yields a number only for callers who aren’t in your contacts, and a WhatsApp update can end it silently — so every screening outcome is recorded, including the ones that found nothing, and the app shows you when a channel has gone quiet.",
+  },
+];
+
 const FEATURES = [
   {
-    title: "Check Message",
-    body: "Paste or share any SMS/WhatsApp message. An AI classifier verdicts it scam, suspicious, or safe — grounded in your market’s own wallets and currency — with highlighted risk phrases and a plain-language explanation.",
+    title: "Call Guard — incoming calls, SMS and WhatsApp calls",
+    body: "Screens calls, texts and WhatsApp calls as they arrive and warns you when the sender is a known, community-flagged scammer — no need to suspect anything first. Each channel is opt-in, and the app logs every screened event so you can see it is still working.",
+  },
+  {
+    title: "Check Message — paste from anywhere",
+    body: "Copy any suspicious text — an SMS, a WhatsApp message, an email, a Facebook or Messenger message — paste it in, and an AI classifier verdicts it scam, suspicious or safe, grounded in your market’s own wallets and currency, with the risk phrases highlighted and a plain-language reason.",
   },
   {
     title: "Get Help",
@@ -160,14 +186,22 @@ export default async function LandingPage() {
           />
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
             <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-              Chengeta — check it, report it safely, and know who to call next.
+              Chengeta — know who&apos;s calling, check any message, and know who to call next.
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-neutral">
-              ChengetAI helps people across African mobile-money markets verify a suspicious
-              message, report the number behind it without putting themselves at risk, and reach
-              the right help fast. Covering Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana
-              and Tanzania — one shared scam database, grounded in each market&apos;s own wallets
-              and currency.
+              ChengetAI screens your{" "}
+              <strong className="font-semibold text-foreground">
+                incoming calls, SMS and WhatsApp calls
+              </strong>{" "}
+              as they arrive and warns you when the number belongs to a known, community-flagged
+              scammer — before you answer or reply. Anything
+              your phone can&apos;t hand over, you paste in: a WhatsApp message, an email, a
+              Facebook or Messenger text. Then report the number behind it without putting yourself
+              at risk, and reach the right help fast.
+            </p>
+            <p className="mt-4 max-w-2xl text-lg text-neutral">
+              Covering Zimbabwe, Kenya, Nigeria, Uganda, South Africa, Ghana and Tanzania — one
+              shared scam database, grounded in each market&apos;s own wallets and currency.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -238,6 +272,64 @@ export default async function LandingPage() {
               ))}
             </ol>
           </div>
+        </section>
+
+        {/* Incoming screening. Given its own section rather than one feature
+            card because it is the only part of the product that protects
+            someone who has no reason to be suspicious yet. */}
+        <section id="protection" className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-secondary">
+            Live protection — Call Guard
+          </h2>
+          <p className="mt-2 max-w-3xl text-2xl font-semibold text-foreground">
+            ChengetAI detects known scammers on incoming calls, SMS and WhatsApp calls — and warns
+            you before you answer.
+          </p>
+          <p className="mt-4 max-w-3xl text-neutral">
+            Looking a number up or checking a message both require you to already suspect something.
+            Call Guard is the inverse: it screens calls and texts against the flagged-number
+            database <em>as they arrive</em>, for the moment when nothing looks wrong yet. Warning
+            only fires on numbers the community has flagged past a threshold — one hostile report
+            can never brand a number.
+          </p>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {SCREENED_CHANNELS.map((c) => (
+              <div
+                key={c.channel}
+                className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5"
+              >
+                <h3 className="font-semibold text-brand-primary">{c.channel}</h3>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-brand-secondary">
+                  {c.signal}
+                </p>
+                <p className="mt-3 text-sm text-neutral">{c.body}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* The paste flow, stated next to the automatic channels precisely so
+              nobody assumes ChengetAI silently reads their chats or inbox. */}
+          <div className="mt-6 rounded-2xl border border-brand-primary/20 bg-surface-tint p-6 md:p-8">
+            <h3 className="text-lg font-semibold text-foreground">
+              WhatsApp messages, email, Facebook, Messenger — paste them in
+            </h3>
+            <p className="mt-3 max-w-3xl text-sm text-neutral">
+              No app can silently read your WhatsApp chats, your inbox or your Facebook messages,
+              and ChengetAI does not pretend to. It gives you the other half instead: copy any
+              suspicious text — a WhatsApp forward, an email, a Facebook or Messenger message, a
+              Telegram text — paste it into Check Message, and get a verdict in seconds with the
+              exact phrases that triggered it and what to do next. Same classifier and same local
+              grounding as the automatic SMS path, on text from any source.
+            </p>
+          </div>
+
+          <p className="mt-6 max-w-3xl text-sm text-neutral">
+            Call Guard is Android-only, and each channel is separately opt-in — you grant call
+            screening, SMS and WhatsApp access one at a time, and can run any one of them alone.
+            iOS forbids a third-party app from seeing an incoming caller&apos;s number or reading
+            SMS at all, which is a platform limit rather than a scope choice. The paste flow works
+            everywhere.
+          </p>
         </section>
 
         {/* Market coverage — driven by the live registry, not a hardcoded list */}
