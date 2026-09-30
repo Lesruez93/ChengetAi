@@ -89,7 +89,7 @@ in digital payments.
 `admin-overview.png`, `admin-reports.png`, `admin-numbers.png`,
 `admin-sentinel.png`, `admin-login.png` — captured against a running backend
 with seeded data, not mockups. They are also served from the live landing page
-at [chengetai.vercel.app](https://chengetai.vercel.app).
+at  [https://chenget-ai-dusky.vercel.app](https://chenget-ai-dusky.vercel.app/)/).
 
 The one exception is the **mobile** capture
 (`web/public/screenshots/mobile-number-lookup.png`): it predates the current
@@ -316,7 +316,7 @@ safely → reach help**.
 
 ## Live demo
 
-**[chengetai.vercel.app](https://chengetai.vercel.app)** — the deployed landing
+**[(https://chenget-ai-dusky.vercel.app/)** — the deployed landing
 page, and the single evidence hub for screenshots, demo walkthroughs and mobile
 app links.
 
