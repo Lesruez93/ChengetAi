@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const NAV_LINKS = [
+  { href: "#watch", label: "Watch" },
   { href: "#problem", label: "The Problem" },
   { href: "#flow", label: "How it works" },
   { href: "#protection", label: "Call Guard" },

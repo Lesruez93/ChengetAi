@@ -103,6 +103,16 @@ const FEATURES = [
   },
 ];
 
+// Timestamps match /videos/chengetai-demo.mp4 — update them if the recording is replaced.
+const DEMO_VIDEO_MOMENTS = [
+  { time: "0:00", label: "Number Lookup — check a number before you call back" },
+  { time: "0:08", label: "Check Message — the paste-in flow" },
+  { time: "0:16", label: "A WhatsApp call arrives from a flagged number" },
+  { time: "0:19", label: "Call Guard warns: likely scam, 4 reports, wrong deposit / reversal" },
+  { time: "0:27", label: "Scam Alerts — trending patterns across markets" },
+  { time: "0:32", label: "Call Guard setup — each channel opt-in" },
+];
+
 const GITHUB_REPO_URL = "https://github.com/Lesruez93/ChengetAi";
 const APK_DOWNLOAD_URL =
   "https://github.com/Lesruez93/ChengetAi/releases/download/v0.1.0-mvp/app-release.apk";
@@ -216,6 +226,51 @@ export default async function LandingPage() {
               >
                 Open admin dashboard
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Demo video — a real screen recording, placed straight after the hero
+            so the Call Guard warning is seen before any of the explanation. */}
+        <section id="watch" className="mx-auto max-w-6xl px-6 py-20">
+          <div className="grid items-center gap-12 md:grid-cols-[1fr_auto]">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-secondary">
+                Watch it work
+              </h2>
+              <p className="mt-2 max-w-xl text-2xl font-semibold text-foreground">
+                A scam WhatsApp call, flagged while it&apos;s still ringing.
+              </p>
+              <p className="mt-4 max-w-xl text-neutral">
+                An unedited screen recording of the Android app. A WhatsApp call comes in from a
+                number the community has already reported, and Call Guard raises the warning
+                before it&apos;s answered: the risk, how many people reported it, and what for.
+              </p>
+              <ol className="mt-8 max-w-xl space-y-3">
+                {DEMO_VIDEO_MOMENTS.map((m) => (
+                  <li key={m.time} className="flex gap-4 text-sm">
+                    <span className="w-10 shrink-0 font-mono font-semibold text-brand-secondary">
+                      {m.time}
+                    </span>
+                    <span className="text-neutral">{m.label}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="mx-auto w-[260px] overflow-hidden rounded-[2.25rem] border-[10px] border-neutral-900 bg-black shadow-2xl md:w-[300px]">
+              <video
+                src="/videos/chengetai-demo.mp4"
+                poster="/videos/chengetai-demo-poster.jpg"
+                width={720}
+                height={1608}
+                controls
+                playsInline
+                preload="metadata"
+                aria-label="Screen recording of ChengetAI flagging an incoming scam WhatsApp call"
+                className="block h-auto w-full"
+              >
+                <a href="/videos/chengetai-demo.mp4">Download the demo video</a>
+              </video>
             </div>
           </div>
         </section>
