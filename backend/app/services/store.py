@@ -113,6 +113,23 @@ class InMemoryStore:
             Report(msisdn="+263710423555", country="ZW", category="mobile_money_reversal",
                    region="Harare", message_excerpt="I will send police if you don't reverse it",
                    reporter_trust=1.0, created_at=now - timedelta(days=1)),
+            # Zimbabwe — the live-call demo fixture: the presenter's own handset,
+            # flagged on purpose so a real call or SMS from it to the demo phone
+            # triggers Call Guard. Same shape as the fixture above (three
+            # categories, four reports) so it reads as "high" and publicly
+            # flagged. Owner-controlled; remove before real user data is stored.
+            Report(msisdn="+263775568021", country="ZW", category="fake_job", region="Harare",
+                   message_excerpt="Congratulations, you are shortlisted. Pay the [redacted] registration fee",
+                   reporter_trust=1.3, created_at=now - timedelta(hours=1)),
+            Report(msisdn="+263775568021", country="ZW", category="mobile_money_reversal",
+                   region="Harare", message_excerpt="I sent money to your EcoCash by mistake, reverse it now",
+                   reporter_trust=1.2, created_at=now - timedelta(hours=5)),
+            Report(msisdn="+263775568021", country="ZW", category="impersonation",
+                   region="Bulawayo", message_excerpt="Calling from the EcoCash fraud desk, confirm your details",
+                   reporter_trust=1.1, created_at=now - timedelta(hours=13)),
+            Report(msisdn="+263775568021", country="ZW", category="fake_job", region="Harare",
+                   message_excerpt="Your placement is confirmed, send the processing fee today",
+                   reporter_trust=1.0, created_at=now - timedelta(hours=22)),
             # Kenya — M-PESA reversal spreading beyond Nairobi, plus a SIM swap wave
             Report(msisdn="+254712345678", country="KE", category="mobile_money_reversal",
                    region="Nairobi", message_excerpt="I sent you money by mistake, please send it back",
