@@ -106,6 +106,7 @@ const FEATURES = [
 const GITHUB_REPO_URL = "https://github.com/Lesruez93/ChengetAi";
 const APK_DOWNLOAD_URL =
   "https://github.com/Lesruez93/ChengetAi/releases/download/v0.1.0-mvp/app-release.apk";
+const DEMO_VIDEO_SRC = "/videos/chengetai-demo.mp4";
 
 const MOBILE_SCREENSHOTS = [
   {
@@ -481,6 +482,24 @@ export default async function LandingPage() {
             The dashboard screenshots below were captured against a running ChengetAI backend with
             seeded data — not mockups. Grab the Android build or the full source below.
           </p>
+
+          {/* Sized by the video's own aspect ratio and capped at 80vh, so a
+              portrait phone recording and a landscape one both fit without
+              cropping. The #t=0.1 fragment makes iOS Safari paint the first
+              frame instead of a black box while only metadata is preloaded. */}
+          <div
+            id="demo-video"
+            className="mt-8 max-w-3xl overflow-hidden rounded-2xl border border-black/5 bg-black shadow-sm dark:border-white/10"
+          >
+            <video controls playsInline preload="metadata" className="block max-h-[80vh] w-full">
+              <source src={`${DEMO_VIDEO_SRC}#t=0.1`} type="video/mp4" />
+              Your browser can&apos;t play this video.{" "}
+              <a href={DEMO_VIDEO_SRC} className="underline">
+                Download it instead
+              </a>
+              .
+            </video>
+          </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <a
