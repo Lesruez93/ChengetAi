@@ -245,6 +245,10 @@ insert into public.numbers (msisdn, country, report_count, categories, countries
     -- reports clears the public-flag threshold — the call banner only warns on
     -- a publicly flagged number.
     ('+263710423555', 'ZW', 4, '{"mobile_money_reversal": 2, "otp_phishing": 1, "impersonation": 1}'::jsonb, '{"ZW": 4}'::jsonb, now() - interval '3 hours', true),
+    -- The live-call demo fixture: the presenter's own handset, flagged on
+    -- purpose so a real call or SMS from it triggers Call Guard. Same shape as
+    -- the fixture above. Owner-controlled; remove before real user data.
+    ('+263775568021', 'ZW', 4, '{"fake_job": 2, "mobile_money_reversal": 1, "impersonation": 1}'::jsonb, '{"ZW": 4}'::jsonb, now() - interval '1 hour', true),
     -- Kenya
     ('+254712345678', 'KE', 3, '{"mobile_money_reversal": 3}'::jsonb, '{"KE": 3}'::jsonb, now() - interval '4 hours', true),
     ('+254733221100', 'KE', 1, '{"sim_swap": 1}'::jsonb, '{"KE": 1}'::jsonb, now() - interval '2 days', false),
@@ -282,6 +286,10 @@ insert into public.reports (msisdn, country, category, region, message_excerpt, 
     ('+263710423555', 'ZW', 'otp_phishing', 'Harare', 'EcoCash agent here, read me the code to reverse it', 1.3, now() - interval '11 hours'),
     ('+263710423555', 'ZW', 'impersonation', 'Bulawayo', 'Calling from the EcoCash fraud desk', 1.2, now() - interval '19 hours'),
     ('+263710423555', 'ZW', 'mobile_money_reversal', 'Harare', 'I will send police if you don''t reverse it', 1.0, now() - interval '1 day'),
+    ('+263775568021', 'ZW', 'fake_job', 'Harare', 'Congratulations, you are shortlisted. Pay the [redacted] registration fee', 1.3, now() - interval '1 hour'),
+    ('+263775568021', 'ZW', 'mobile_money_reversal', 'Harare', 'I sent money to your EcoCash by mistake, reverse it now', 1.2, now() - interval '5 hours'),
+    ('+263775568021', 'ZW', 'impersonation', 'Bulawayo', 'Calling from the EcoCash fraud desk, confirm your details', 1.1, now() - interval '13 hours'),
+    ('+263775568021', 'ZW', 'fake_job', 'Harare', 'Your placement is confirmed, send the processing fee today', 1.0, now() - interval '22 hours'),
     -- Kenya — M-PESA reversal spreading beyond Nairobi, plus a SIM swap wave
     ('+254712345678', 'KE', 'mobile_money_reversal', 'Nairobi', 'I sent you money by mistake, please send it back', 1.3, now() - interval '4 hours'),
     ('+254712345678', 'KE', 'mobile_money_reversal', 'Nairobi', 'Please return the M-PESA sent in error', 1.0, now() - interval '9 hours'),
